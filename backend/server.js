@@ -1,13 +1,14 @@
-const express = require("express");
+require("dotenv").config();
 
-const app = express();
+const app = require("./app");
+const connectDB = require("./config/database");
 
-app.get("/", (req, res) => {
-    res.send("Project Management API is running...");
-});
+const PORT = process.env.PORT || 5000;
 
-const PORT = 5000;
+// Connect Database
+connectDB();
 
+// Start Server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
