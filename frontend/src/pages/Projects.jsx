@@ -4,7 +4,7 @@ import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import StatusBadge from "../components/StatusBadge";
-import { getProjects } from "../api/projectApi";
+import { getProjects, deleteProject } from "../api/projectApi";
 import AddProjectModal from "../components/AddProjectModal";
 
 function Projects() {
@@ -28,7 +28,23 @@ function Projects() {
         }
     };
 
-    // 🏗️ Step 5 — Pass Function from Parent
+    const handleDelete = async (id) => {
+        const confirmDelete = window.confirm(
+            "Are you sure you want to delete this project?"
+        );
+
+        if (!confirmDelete) return;
+
+        try {
+            await deleteProject(id);
+            loadProjects();
+            alert("Project Deleted Successfully");
+        } catch (error) {
+            console.log(error);
+            alert("Failed to delete project");
+        }
+    };
+
     const refreshProjects = () => {
         loadProjects();
     };
@@ -41,7 +57,6 @@ function Projects() {
                 onClick={() => setShowModal(true)}
             />
             
-            {/* 🏗️ Step 5 Continued — Forwarding Props */}
             <AddProjectModal
                 show={showModal}
                 handleClose={() => setShowModal(false)}
@@ -71,6 +86,7 @@ function Projects() {
                             <th>Priority</th>
                             <th>Status</th>
                             <th>Budget</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,6 +104,17 @@ function Projects() {
                                         <StatusBadge status={project.status} />
                                     </td>
                                     <td>₹ {project.budget}</td>
+                                    <td>
+                                        <button className="btn btn-warning btn-sm me-2">
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="btn btn-danger btn-sm"
+                                            onClick={() => handleDelete(project._id)}
+                                        >
+                                            Delete
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         }

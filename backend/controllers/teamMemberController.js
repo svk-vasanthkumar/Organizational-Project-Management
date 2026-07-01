@@ -45,7 +45,33 @@ const getTeamMembers = async (req, res) => {
   }
 };
 
+// Delete Team Member
+const deleteTeamMember = async (req, res) => {
+  try {
+    const member = await TeamMember.findByIdAndDelete(req.params.id);
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Member deleted successfully"
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
 module.exports = {
   createTeamMember,
   getTeamMembers,
+  deleteTeamMember,
 };
