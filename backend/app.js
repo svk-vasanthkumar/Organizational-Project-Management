@@ -6,6 +6,8 @@ const estimationRoutes = require("./routes/estimationRoutes");
 const teamMemberRoutes = require("./routes/teamMemberRoutes");
 const projectAssignmentRoutes = require("./routes/projectAssignmentRoutes");
 const taskRoutes = require("./routes/taskRoutes");
+const timeLogRoutes=require("./routes/timeLogRoutes");
+const performanceRoutes = require("./routes/performanceRoutes");
 
 const app = express();
 
@@ -19,6 +21,8 @@ app.use("/api/estimations", estimationRoutes);
 app.use("/api/team-members", teamMemberRoutes);
 app.use("/api/assignments", projectAssignmentRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/time-logs",timeLogRoutes);
+app.use("/api/performance", performanceRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
