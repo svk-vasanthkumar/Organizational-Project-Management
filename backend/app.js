@@ -8,6 +8,7 @@ const projectAssignmentRoutes = require("./routes/projectAssignmentRoutes");
 const taskRoutes = require("./routes/taskRoutes");
 const timeLogRoutes=require("./routes/timeLogRoutes");
 const performanceRoutes = require("./routes/performanceRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/assignments", projectAssignmentRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/time-logs",timeLogRoutes);
 app.use("/api/performance", performanceRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
