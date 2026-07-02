@@ -7,3 +7,6 @@ export const createTask = (data) =>
 
 export const deleteTask = (id) =>
     axios.delete(`/tasks/${id}`);
+
+export const updateTask = (id, data) =>
+    axios.put(`/tasks/${id}`, data);

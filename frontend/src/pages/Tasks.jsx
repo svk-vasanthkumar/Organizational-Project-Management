@@ -12,6 +12,7 @@ function Tasks() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
+    const [selectedTask, setSelectedTask] = useState(null);
 
     useEffect(() => {
         loadTasks();
@@ -59,6 +60,7 @@ function Tasks() {
                             <th>Hours</th>
                             <th>Deadline</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,6 +78,17 @@ function Tasks() {
                                     <td>
                                         <StatusBadge status={task.status} />
                                     </td>
+                                    <td>
+                                        <button
+                                            className="btn btn-warning btn-sm me-2"
+                                            onClick={() => {
+                                                setSelectedTask(task);
+                                                setShowModal(true);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         }
@@ -85,8 +98,12 @@ function Tasks() {
 
             <AddTaskModal
                 show={showModal}
-                handleClose={() => setShowModal(false)}
+                handleClose={() => {
+                    setShowModal(false);
+                    setSelectedTask(null);
+                }}
                 refreshTasks={loadTasks}
+                selectedTask={selectedTask}
             />
         </MainLayout>
     );

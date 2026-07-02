@@ -3,9 +3,9 @@ import { Modal, Button, Form } from "react-bootstrap";
 
 import { getProjects } from "../api/projectApi";
 import { getMembers } from "../api/teamMemberApi";
-import { createTask, getTasks } from "../api/taskApi";
+import { createTask, getTasks, updateTask } from "../api/taskApi";
 
-function AddTaskModal({ show, handleClose, refreshTasks }) {
+function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
     const [projects, setProjects] = useState([]);
     const [members, setMembers] = useState([]);
     const [tasks, setTasks] = useState([]);
@@ -24,6 +24,33 @@ function AddTaskModal({ show, handleClose, refreshTasks }) {
     useEffect(() => {
         loadData();
     }, []);
+
+    useEffect(() => {
+        if (selectedTask) {
+            setFormData({
+                projectId: selectedTask.projectId?._id || selectedTask.projectId || "",
+                assignedTo: selectedTask.assignedTo?._id || selectedTask.assignedTo || "",
+                title: selectedTask.title || "",
+                description: selectedTask.description || "",
+                estimatedHours: selectedTask.estimatedHours || "",
+                deadline: selectedTask.deadline?.substring(0, 10) || "",
+                priority: selectedTask.priority || "Medium",
+                status: selectedTask.status || "",
+                parentTaskId: selectedTask.parentTaskId || ""
+            });
+        } else {
+            setFormData({
+                projectId: "",
+                assignedTo: "",
+                title: "",
+                description: "",
+                estimatedHours: "",
+                deadline: "",
+                priority: "Medium",
+                parentTaskId: ""
+            });
+        }
+    }, [selectedTask, show]);
 
     const loadData = async () => {
         try {
@@ -48,19 +75,25 @@ function AddTaskModal({ show, handleClose, refreshTasks }) {
 
     const handleSave = async () => {
         try {
-            await createTask(formData);
+            if (selectedTask) {
+                await updateTask(selectedTask._id, formData);
+            } else {
+                await createTask(formData);
+            }
             refreshTasks();
             handleClose();
         } catch (err) {
             console.log(err);
-            alert("Task Creation Failed");
+            alert("Failed");
         }
     };
 
     return (
         <Modal show={show} onHide={handleClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Add Task</Modal.Title>
+                <Modal.Title>
+                    {selectedTask ? "Edit Task" : "Add Task"}
+                </Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
@@ -106,7 +139,7 @@ function AddTaskModal({ show, handleClose, refreshTasks }) {
                         >
                             <option value="">Main Task</option>
                             {tasks
-                                .filter(task => !task.parentTaskId)
+                                .filter(task => !task.parentTaskId && task._id !== selectedTask?._id)
                                 .map(task => (
                                     <option key={task._id} value={task._id}>
                                         {task.title}
@@ -183,7 +216,7 @@ function AddTaskModal({ show, handleClose, refreshTasks }) {
                     Cancel
                 </Button>
                 <Button variant="primary" onClick={handleSave}>
-                    Create Task
+                    {selectedTask ? "Update Task" : "Save Task"}
                 </Button>
             </Modal.Footer>
         </Modal>

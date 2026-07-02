@@ -13,6 +13,7 @@ import Reports from "./pages/Reports";
 import ProjectDelivery from "./pages/ProjectDelivery";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
+import BreachLogs from "./pages/BreachLogs";
 
 function App() {
   return (
@@ -69,7 +70,11 @@ function App() {
         element={ <ProtectedRoute> <Estimation/> </ProtectedRoute>}
         />
 
-        
+        <Route path="/breach-logs"
+        element={ <ProtectedRoute> <BreachLogs/> </ProtectedRoute> }
+        />
+
+
       </Routes>
     </BrowserRouter>
   );
