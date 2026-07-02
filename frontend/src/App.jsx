@@ -64,6 +64,12 @@ function App() {
           path="/project-delivery" 
           element={<ProtectedRoute><ProjectDelivery /></ProtectedRoute>} 
         />
+
+        <Route path="/estimations" 
+        element={ <ProtectedRoute> <Estimation/> </ProtectedRoute>}
+        />
+
+        
       </Routes>
     </BrowserRouter>
   );
