@@ -1,5 +1,6 @@
 const Task = require("../models/Task");
 const ProjectAssignment = require("../models/ProjectAssignment");
+const BreachLog = require("../models/BreachLog");
 
 // Create Task
 const createTask = async (req, res) => {
@@ -68,7 +69,6 @@ const createTask = async (req, res) => {
 // Get Tasks
 const getTasks = async (req, res) => {
   try {
-
     const tasks = await Task.find()
       .populate("projectId")
       .populate("assignedTo");
@@ -79,16 +79,65 @@ const getTasks = async (req, res) => {
     });
 
   } catch (error) {
-
     res.status(500).json({
       success: false,
       message: error.message,
     });
+  }
+};
 
+// Update Task
+const updateTask = async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    const today = new Date();
+
+    if (
+      task.deadline &&
+      new Date(task.deadline) < today &&
+      task.status !== "Completed"
+    ) {
+      const exists = await BreachLog.findOne({
+        taskId: task._id
+      });
+
+      if (!exists) {
+        await BreachLog.create({
+          taskId: task._id,
+          memberId: task.assignedTo,
+          originalDeadline: task.deadline,
+          revisedDeadline: today,
+          reason: "Task deadline exceeded"
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      data: task
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
 module.exports = {
   createTask,
   getTasks,
+  updateTask,
 };

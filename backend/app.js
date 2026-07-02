@@ -9,6 +9,9 @@ const taskRoutes = require("./routes/taskRoutes");
 const timeLogRoutes=require("./routes/timeLogRoutes");
 const performanceRoutes = require("./routes/performanceRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
+const projectDeliveryRoutes = require("./routes/projectDeliveryRoutes");
+const breachLogRoutes = require("./routes/breachLogRoutes");
+const closureSnapshotRoutes = require("./routes/closureSnapshotRoutes");
 
 const app = express();
 
@@ -25,6 +28,9 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/time-logs",timeLogRoutes);
 app.use("/api/performance", performanceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/project-delivery", projectDeliveryRoutes);
+app.use("/api/breach-logs", breachLogRoutes);
+app.use("/api/closure-snapshots", closureSnapshotRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
