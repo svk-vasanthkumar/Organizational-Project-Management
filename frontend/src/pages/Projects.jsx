@@ -12,6 +12,7 @@ function Projects() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
+    const [selectedProject, setSelectedProject] = useState(null);
 
     useEffect(() => {
         loadProjects();
@@ -59,8 +60,12 @@ function Projects() {
             
             <AddProjectModal
                 show={showModal}
-                handleClose={() => setShowModal(false)}
+                handleClose={() => {
+                    setShowModal(false);
+                    setSelectedProject(null);
+                }}
                 refreshProjects={refreshProjects}
+                selectedProject={selectedProject}
             />
 
             <div className="mb-3">
@@ -105,7 +110,13 @@ function Projects() {
                                     </td>
                                     <td>₹ {project.budget}</td>
                                     <td>
-                                        <button className="btn btn-warning btn-sm me-2">
+                                        <button 
+                                            className="btn btn-warning btn-sm me-2"
+                                            onClick={() => {
+                                                setSelectedProject(project);
+                                                setShowModal(true);
+                                            }}
+                                        >
                                             Edit
                                         </button>
                                         <button

@@ -10,32 +10,60 @@ import Tasks from "./pages/Tasks";
 import TimeLogs from "./pages/TimeLogs";
 import Performance from "./pages/Performance";
 import Reports from "./pages/Reports";
+import ProjectDelivery from "./pages/ProjectDelivery";
+import Register from "./pages/Register";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
+        {/* Public Routes */}
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        <Route path="/dashboard" element={<Dashboard />} />
-
-        <Route path="/projects" element={<Projects />} />
-
-        <Route path="/estimation" element={<Estimation />} />
-
-        <Route path="/team-members" element={<TeamMembers />} />
-
-        <Route path="/assignment" element={<Assignment />} />
-
-        <Route path="/tasks" element={<Tasks />} />
-
-        <Route path="/time-logs" element={<TimeLogs />} />
-
-        <Route path="/performance" element={<Performance />} />
-
-        <Route path="/reports" element={<Reports />} />
-
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={<ProtectedRoute><Dashboard /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/projects" 
+          element={<ProtectedRoute><Projects /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/estimation" 
+          element={<ProtectedRoute><Estimation /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/team-members" 
+          element={<ProtectedRoute><TeamMembers /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/assignment" 
+          element={<ProtectedRoute><Assignment /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/tasks" 
+          element={<ProtectedRoute><Tasks /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/time-logs" 
+          element={<ProtectedRoute><TimeLogs /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/performance" 
+          element={<ProtectedRoute><Performance /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/reports" 
+          element={<ProtectedRoute><Reports /></ProtectedRoute>} 
+        />
+        <Route 
+          path="/project-delivery" 
+          element={<ProtectedRoute><ProjectDelivery /></ProtectedRoute>} 
+        />
       </Routes>
     </BrowserRouter>
   );

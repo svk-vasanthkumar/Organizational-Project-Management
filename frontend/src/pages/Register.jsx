@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../api/authApi";
+import { registerUser } from "../api/authApi";
 
-function Login() {
+function Register() {
 
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
+        name: "",
         email: "",
-        password: ""
+        password: "",
+        confirmPassword: ""
     });
 
     const handleChange = (e) => {
@@ -24,24 +26,28 @@ function Login() {
 
         e.preventDefault();
 
+        if (formData.password !== formData.confirmPassword) {
+            alert("Passwords do not match");
+            return;
+        }
+
         try {
 
-            const res = await loginUser(formData);
+            await registerUser({
+                name: formData.name,
+                email: formData.email,
+                password: formData.password
+            });
 
-            localStorage.setItem(
-                "token",
-                res.data.token
-            );
+            alert("Registration Successful");
 
-            alert("Login Successful");
-
-            navigate("/dashboard");
+            navigate("/login");
 
         } catch (err) {
 
             console.log(err);
 
-            alert("Invalid Email or Password");
+            alert("Registration Failed");
 
         }
 
@@ -60,15 +66,23 @@ function Login() {
                         <div className="card-body">
 
                             <h3 className="text-center mb-4">
-                                Login
+                                Register
                             </h3>
 
                             <form onSubmit={handleSubmit}>
 
                                 <input
                                     className="form-control mb-3"
-                                    type="email"
+                                    placeholder="Name"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                />
+
+                                <input
+                                    className="form-control mb-3"
                                     placeholder="Email"
+                                    type="email"
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
@@ -76,18 +90,27 @@ function Login() {
 
                                 <input
                                     className="form-control mb-3"
-                                    type="password"
                                     placeholder="Password"
+                                    type="password"
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
                                 />
 
+                                <input
+                                    className="form-control mb-3"
+                                    placeholder="Confirm Password"
+                                    type="password"
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                />
+
                                 <button
-                                    className="btn btn-success w-100"
+                                    className="btn btn-primary w-100"
                                     type="submit"
                                 >
-                                    Login
+                                    Register
                                 </button>
 
                             </form>
@@ -106,4 +129,4 @@ function Login() {
 
 }
 
-export default Login;
+export default Register;

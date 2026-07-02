@@ -1,11 +1,8 @@
 import { Modal, Button, Form } from "react-bootstrap";
-import { useState } from "react";
-// 🏗️ Step 7 — Import API
-import { createProject } from "../api/projectApi";
+import { useEffect, useState } from "react";
+import { createProject, updateProject } from "../api/projectApi";
 
-// 🏗️ Step 6 — Receive Props
-function AddProjectModal({ show, handleClose, refreshProjects }) {
-    // 🏗️ Step 1 — Form State
+function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }) {
     const [formData, setFormData] = useState({
         name: "",
         client: "",
@@ -18,7 +15,34 @@ function AddProjectModal({ show, handleClose, refreshProjects }) {
         scope: ""
     });
 
-    // A clean helper to keep the inputs DRY (Don't Repeat Yourself)
+    useEffect(() => {
+        if (selectedProject) {
+            setFormData({
+                name: selectedProject.name || "",
+                client: selectedProject.client || "",
+                type: selectedProject.type || "",
+                priority: selectedProject.priority || "Medium",
+                totalHours: selectedProject.totalHours || "",
+                budget: selectedProject.budget || "",
+                startDate: selectedProject.startDate?.substring(0, 10) || "",
+                endDate: selectedProject.endDate?.substring(0, 10) || "",
+                scope: selectedProject.scope || ""
+            });
+        } else {
+            setFormData({
+                name: "",
+                client: "",
+                type: "",
+                priority: "Medium",
+                totalHours: "",
+                budget: "",
+                startDate: "",
+                endDate: "",
+                scope: ""
+            });
+        }
+    }, [selectedProject, show]);
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -27,29 +51,34 @@ function AddProjectModal({ show, handleClose, refreshProjects }) {
         });
     };
 
-    // 🏗️ Step 8 — Create Handle Save
     const handleSave = async () => {
         try {
-            await createProject(formData);
-            alert("Project Created Successfully");
+            if (selectedProject) {
+                await updateProject(selectedProject._id, formData);
+                alert("Project Updated Successfully");
+            } else {
+                await createProject(formData);
+                alert("Project Created Successfully");
+            }
             refreshProjects();
             handleClose();
         } catch (error) {
             console.log(error);
-            alert("Failed to Create Project");
+            alert("Operation Failed");
         }
     };
 
     return (
         <Modal show={show} onHide={handleClose} size="lg">
             <Modal.Header closeButton>
-                <Modal.Title>Add New Project</Modal.Title>
+                <Modal.Title>
+                    {selectedProject ? "Edit Project" : "Add New Project"}
+                </Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
                 <Form>
                     <div className="row">
-                        {/* 🏗️ Step 2 — Connect Inputs */}
                         <div className="col-md-6 mb-3">
                             <Form.Label>Project Name</Form.Label>
                             <Form.Control
@@ -152,12 +181,8 @@ function AddProjectModal({ show, handleClose, refreshProjects }) {
                     Cancel
                 </Button>
 
-                {/* 🏗️ Step 9 — Save Button Execution */}
-                <Button 
-                    variant="primary" 
-                    onClick={handleSave}
-                >
-                    Save Project
+                <Button variant="primary" onClick={handleSave}>
+                    {selectedProject ? "Update Project" : "Save Project"}
                 </Button>
             </Modal.Footer>
         </Modal>
