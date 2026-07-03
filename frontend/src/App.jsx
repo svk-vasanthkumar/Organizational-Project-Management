@@ -14,6 +14,10 @@ import ProjectDelivery from "./pages/ProjectDelivery";
 import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BreachLogs from "./pages/BreachLogs";
+import ClosureSnapshots from "./pages/ClosureSnapshots";
+import ProjectSummaryReport from "./pages/ProjectSummaryReport";
+import MemberPerformanceReport from "./pages/MemberPerformanceReport";
+import LagAttributionReport from "./pages/LagAttributionReport";
 
 function App() {
   return (
@@ -73,6 +77,23 @@ function App() {
         <Route path="/breach-logs"
         element={ <ProtectedRoute> <BreachLogs/> </ProtectedRoute> }
         />
+
+        <Route path="/closure-snapshots"
+          element={ <ProtectedRoute> <ClosureSnapshots/> </ProtectedRoute> }
+        />
+
+        <Route path="/reports/project-summary"
+          element={<ProtectedRoute> <ProjectSummaryReport /> </ProtectedRoute> }
+        />
+
+         <Route path="/reports/member-performance"
+            element={ <ProtectedRoute> <MemberPerformanceReport/> </ProtectedRoute>
+}
+            />
+
+          <Route path="/reports/lag-attribution"
+             element={ <ProtectedRoute> <LagAttributionReport/> </ProtectedRoute> }
+             />
 
 
       </Routes>
