@@ -1,0 +1,171 @@
+/* ==========================================
+   OrbitPM - Enterprise Sidebar Design
+   ========================================== */
+:root {
+  --orbit-sidebar-bg: #111827;
+  --orbit-sidebar-surface: #1F2937;
+  --orbit-sidebar-border: rgba(255, 255, 255, 0.08);
+  --orbit-sidebar-text: #9CA3AF;
+  --orbit-sidebar-text-hover: #F9FAFB;
+  --orbit-primary: #4F46E5;
+  --orbit-primary-light: rgba(79, 70, 229, 0.15);
+  --orbit-primary-glow: rgba(79, 70, 229, 0.4);
+  --orbit-danger-light: rgba(239, 68, 68, 0.12);
+  --orbit-sidebar-shadow: 4px 0 24px -2px rgba(0, 0, 0, 0.25);
+  --orbit-transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Desktop Sidebar Container (260px Width) --- */
+.orbit-sidebar-desktop {
+  width: 260px;
+  background-color: var(--orbit-sidebar-bg);
+  border-right: 1px solid var(--orbit-sidebar-border);
+  box-shadow: var(--orbit-sidebar-shadow);
+  z-index: 1040;
+  user-select: none;
+}
+
+/* --- Mobile Toggle Button --- */
+.orbit-mobile-toggle {
+  z-index: 1035;
+  background-color: var(--orbit-sidebar-bg);
+  color: var(--orbit-sidebar-text-hover);
+  border: 1px solid var(--orbit-sidebar-border);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  transition: var(--orbit-transition);
+}
+
+.orbit-mobile-toggle:hover {
+  background-color: var(--orbit-sidebar-surface);
+  color: #FFFFFF;
+}
+
+/* --- Navigation Links --- */
+.orbit-nav-link {
+  color: var(--orbit-sidebar-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: var(--orbit-transition);
+  border-radius: 0.5rem;
+}
+
+.orbit-nav-link:hover {
+  color: var(--orbit-sidebar-text-hover);
+  background-color: rgba(255, 255, 255, 0.04);
+  transform: translateX(2px);
+}
+
+.orbit-nav-link.active {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.03);
+  font-weight: 600;
+}
+
+.orbit-nav-link .nav-icon {
+  transition: var(--orbit-transition);
+  color: var(--orbit-sidebar-text);
+}
+
+.orbit-nav-link:hover .nav-icon {
+  color: #C7D2FE;
+}
+
+.orbit-nav-link.active .nav-icon {
+  color: #818CF8;
+}
+
+/* --- Active Pill Indicator with Glow --- */
+.orbit-active-pill {
+  width: 4px;
+  height: 20px;
+  background-color: var(--orbit-primary);
+  box-shadow: 0 0 10px var(--orbit-primary-glow);
+  border-radius: 0 4px 4px 0;
+  left: 0;
+}
+
+/* --- Custom Scrollbar --- */
+.orbit-sidebar-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.orbit-sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.orbit-sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.orbit-sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+
+.orbit-sidebar-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Interactive Footer Profile Card --- */
+.orbit-profile-card {
+  background-color: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  transition: var(--orbit-transition);
+}
+
+.orbit-profile-card:hover,
+.orbit-profile-card.active {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: var(--orbit-sidebar-border);
+}
+
+/* --- Profile Popover Menu --- */
+.orbit-profile-popover {
+  background-color: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.625rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  z-index: 1055;
+}
+
+.orbit-popover-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #E2E8F0;
+  background: transparent;
+  border: none;
+  border-radius: 0.375rem;
+  text-align: left;
+  transition: var(--orbit-transition);
+}
+
+.orbit-popover-item:hover {
+  background-color: rgba(255, 255, 255, 0.06);
+  color: #FFFFFF;
+}
+
+.orbit-popover-item.danger {
+  color: #F87171;
+}
+
+.orbit-popover-item.danger:hover {
+  background-color: var(--orbit-danger-light);
+  color: #EF4444;
+}
+
+/* --- Offcanvas Overrides for Mobile --- */
+.offcanvas.orbit-mobile-drawer {
+  background-color: var(--orbit-sidebar-bg);
+  width: 260px;
+  border-right: 1px solid var(--orbit-sidebar-border);
+  box-shadow: var(--orbit-sidebar-shadow);
+}

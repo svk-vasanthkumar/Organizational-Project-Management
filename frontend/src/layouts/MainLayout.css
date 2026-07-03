@@ -1,0 +1,33 @@
+/* ==========================================
+   OrbitPM - Main Layout Synchronization
+   ========================================== */
+:root {
+  --orbit-sidebar-width: 260px;
+  --orbit-content-bg: #F8FAFC;
+}
+
+/* --- Main Content Container --- */
+.orbit-main-wrapper {
+  min-height: 100vh;
+  background-color: var(--orbit-content-bg);
+  display: flex;
+  flex-direction: column;
+  margin-left: var(--orbit-sidebar-width);
+  transition: margin-left 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* --- Page Content Area --- */
+.orbit-page-content {
+  flex: 1;
+  padding: 1.75rem 2rem;
+}
+
+/* --- Responsive Collapse for Tablet & Mobile (< 992px) --- */
+@media (max-width: 991.98px) {
+  .orbit-main-wrapper {
+    margin-left: 0;
+  }
+  .orbit-page-content {
+    padding: 1.25rem 1rem;
+  }
+}

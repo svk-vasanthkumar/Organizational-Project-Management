@@ -70,10 +70,6 @@ function App() {
           element={<ProtectedRoute><ProjectDelivery /></ProtectedRoute>} 
         />
 
-        <Route path="/estimations" 
-        element={ <ProtectedRoute> <Estimation/> </ProtectedRoute>}
-        />
-
         <Route path="/breach-logs"
         element={ <ProtectedRoute> <BreachLogs/> </ProtectedRoute> }
         />
