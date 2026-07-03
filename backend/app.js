@@ -12,6 +12,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const projectDeliveryRoutes = require("./routes/projectDeliveryRoutes");
 const breachLogRoutes = require("./routes/breachLogRoutes");
 const closureSnapshotRoutes = require("./routes/closureSnapshotRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/project-delivery", projectDeliveryRoutes);
 app.use("/api/breach-logs", breachLogRoutes);
 app.use("/api/closure-snapshots", closureSnapshotRoutes);
+app.use("/api/reports", reportRoutes);
 
 // Test Route
 app.get("/", (req, res) => {
