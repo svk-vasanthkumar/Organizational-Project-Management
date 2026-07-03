@@ -1,0 +1,41 @@
+/* 3. Modern Card Design & 9. Performance Light Transition Settings */
+.dashboard-card {
+  border: none !important;
+  border-radius: 18px !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05) !important;
+  transition: transform 0.25s ease, box-shadow 0.25s ease !important;
+  background-color: #ffffff;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 35px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Tracking tweaks for standard clean elements */
+.tracking-wider {
+  letter-spacing: 0.04em;
+}
+.tracking-tight {
+  letter-spacing: -0.015em;
+}
+
+/* Subtle clean baseline line styles for information cards */
+.list-group-item {
+  padding-top: 0.8rem !important;
+  padding-bottom: 0.8rem !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Row-level subtle transition mechanics for clickable data nodes */
+.hover-bg-light {
+  transition: background-color 0.18s ease-in-out, padding 0.18s ease-in-out;
+}
+
+.hover-bg-light:hover {
+  background-color: #f8fafc !important;
+  padding-left: 6px !important;
+}

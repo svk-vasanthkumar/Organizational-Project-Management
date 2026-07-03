@@ -2,107 +2,283 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/authApi";
 
+import {
+  FaEnvelope,
+  FaLock,
+  FaEye,
+  FaEyeSlash,
+  FaRocket,
+} from "react-icons/fa";
+
+import "./Login.css";
+
 function Login() {
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    const [formData, setFormData] = useState({
-        email: "",
-        password: ""
+  const [loading, setLoading] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
     });
 
-    const handleChange = (e) => {
+  };
 
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+  const handleSubmit = async (e) => {
 
-    };
+    e.preventDefault();
 
-    const handleSubmit = async (e) => {
+    setLoading(true);
 
-        e.preventDefault();
+    try {
 
-        try {
+      const res = await loginUser(formData);
 
-            const res = await loginUser(formData);
+      localStorage.setItem(
+        "token",
+        res.data.token
+      );
 
-            localStorage.setItem(
-                "token",
-                res.data.token
-            );
+      if(res.data.user){
 
-            alert("Login Successful");
+        localStorage.setItem(
+          "user",
+          JSON.stringify(res.data.user)
+        );
 
-            navigate("/dashboard");
+      }
 
-        } catch (err) {
+      navigate("/dashboard");
 
-            console.log(err);
+    } catch (error) {
 
-            alert("Invalid Email or Password");
+      alert("Invalid Email or Password");
 
-        }
+    } finally {
 
-    };
+      setLoading(false);
 
-    return (
+    }
 
-        <div className="container mt-5">
+  };
 
-            <div className="row justify-content-center">
+  return (
 
-                <div className="col-md-5">
+    <div className="login-page">
 
-                    <div className="card shadow">
+      <div className="login-wrapper">
 
-                        <div className="card-body">
+        {/* Left Side */}
 
-                            <h3 className="text-center mb-4">
-                                Login
-                            </h3>
+        <div className="login-left">
 
-                            <form onSubmit={handleSubmit}>
+          <div className="brand">
 
-                                <input
-                                    className="form-control mb-3"
-                                    type="email"
-                                    placeholder="Email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                />
+            <div className="brand-icon">
 
-                                <input
-                                    className="form-control mb-3"
-                                    type="password"
-                                    placeholder="Password"
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                />
-
-                                <button
-                                    className="btn btn-success w-100"
-                                    type="submit"
-                                >
-                                    Login
-                                </button>
-
-                            </form>
-
-                        </div>
-
-                    </div>
-
-                </div>
+              <FaRocket />
 
             </div>
 
+            <h1>OrbitPM</h1>
+
+            <p>
+
+              Enterprise Project Management System
+
+            </p>
+
+          </div>
+
+          <div className="login-content">
+
+            <h2>
+
+              Manage Projects.
+
+              <br />
+
+              Track Progress.
+
+              <br />
+
+              Deliver Faster.
+
+            </h2>
+
+            <p>
+
+              A modern workspace for managing projects,
+
+              teams and performance.
+
+            </p>
+
+          </div>
+
         </div>
 
-    );
+        {/* Right Side */}
+
+        <div className="login-right">
+
+          <div className="login-card">
+
+            <h3>
+
+              Welcome Back 👋
+
+            </h3>
+
+            <p>
+
+              Sign in to continue to OrbitPM
+
+            </p>
+
+            <form onSubmit={handleSubmit}>
+
+              <div className="input-group-custom">
+
+                <FaEnvelope />
+
+                <input
+
+                  type="email"
+
+                  name="email"
+
+                  placeholder="Email Address"
+
+                  value={formData.email}
+
+                  onChange={handleChange}
+
+                  required
+
+                />
+
+              </div>
+
+              <div className="input-group-custom">
+
+                <FaLock />
+
+                <input
+
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
+
+                  name="password"
+
+                  placeholder="Password"
+
+                  value={formData.password}
+
+                  onChange={handleChange}
+
+                  required
+
+                />
+
+                <button
+
+                  type="button"
+
+                  className="password-toggle"
+
+                  onClick={()=>
+                    setShowPassword(!showPassword)
+                  }
+
+                >
+
+                  {
+
+                    showPassword
+
+                    ?
+
+                    <FaEyeSlash/>
+
+                    :
+
+                    <FaEye/>
+
+                  }
+
+                </button>
+
+              </div>
+
+              <button
+
+                type="submit"
+
+                className="login-btn"
+
+                disabled={loading}
+
+              >
+
+                {
+
+                  loading
+
+                  ?
+
+                  "Signing In..."
+
+                  :
+
+                  "Sign In"
+
+                }
+
+              </button>
+
+            </form>
+
+            <div className="register-link">
+
+              Don't have an account?
+
+              <span
+
+                onClick={()=>
+                  navigate("/register")
+                }
+
+              >
+
+                Register
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  );
 
 }
 

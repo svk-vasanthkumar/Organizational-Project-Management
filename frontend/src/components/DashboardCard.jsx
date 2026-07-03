@@ -2,14 +2,14 @@ import React from "react";
 
 function DashboardCard({ title, value, subtitle, icon, color }) {
   return (
-    <div className="col-12 col-sm-6 col-xl-4 col-xxl-2">
+    <div className="col-12 col-md-6 col-lg-4 col-xl-2">
       <div className={`card dashboard-card border-start border-${color} border-4 h-100`}>
         <div className="card-body d-flex flex-column justify-content-between p-4">
           <div className="d-flex align-items-center justify-content-between mb-3">
             <span className="text-muted fw-semibold small text-uppercase tracking-wider">
               {title}
             </span>
-            <div className={`text-${color} fs-4 bg-${color} bg-opacity-10 p-2 rounded-3 lh-1 d-flex align-items-center justify-content-center`}>
+            <div className={`fs-4 bg-${color} bg-opacity-10 p-2 rounded-3 lh-1 d-flex align-items-center justify-content-center`} style={{ width: "42px", height: "42px" }}>
               {icon}
             </div>
           </div>
