@@ -8,6 +8,9 @@ dist-ssr/
 build/
 coverage/
 .vite/
+*.tsbuildinfo
+.eslintcache
+.cache/
 
 # Logs
 logs/
