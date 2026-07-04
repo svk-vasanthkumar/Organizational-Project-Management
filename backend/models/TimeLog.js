@@ -8,12 +8,6 @@ const timeLogSchema = new mongoose.Schema(
         required:true
     },
 
-    assignmentId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"ProjectAssignment",
-        required:true
-    },
-
     memberId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"TeamMember",
@@ -27,27 +21,16 @@ const timeLogSchema = new mongoose.Schema(
 
     hoursLogged:{
         type:Number,
-        required:true,
-        min:1
+        required:true
     },
 
     notes:{
-        type:String,
-        trim:true,
-        default:""
+        type:String
     }
+
 },
 {
-    timestamps:true,
-    toJSON:{ virtuals:true },
-    toObject:{ virtuals:true }
+    timestamps:true
 });
 
-// Prevent duplicate logs for same task/member/date
-timeLogSchema.index({
-    taskId:1,
-    memberId:1,
-    date:1
-});
-
-module.exports = mongoose.model("TimeLog", timeLogSchema);
+module.exports=mongoose.model("TimeLog",timeLogSchema);
