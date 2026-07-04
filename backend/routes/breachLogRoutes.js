@@ -1,14 +1,11 @@
 const express = require("express");
-
 const router = express.Router();
 
 const {
-    createBreachLog,
-    getBreachLogs
+    getBreachLogs,
 } = require("../controllers/breachLogController");
 
+// Automatic Breach Logs
 router.get("/", getBreachLogs);
-
-router.post("/", createBreachLog);
 
 module.exports = router;
