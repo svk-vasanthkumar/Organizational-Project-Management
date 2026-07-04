@@ -35,12 +35,13 @@ function Performance() {
 
         autoTable(doc, {
             startY: 30,
-            head: [["Member", "Project", "Score", "Status"]],
+            head: [["Member", "Score", "Status", "Completed", "Hours"]],
             body: records.map(record => [
-                record.memberId?.name,
-                record.projectId?.name,
+                record.name,
                 record.score,
-                record.statusTag
+                record.status,
+                `${record.completedTasks}/${record.totalTasks}`,
+                `${record.usedHours}/${record.allocatedHours}`
             ])
         });
 
@@ -48,13 +49,22 @@ function Performance() {
     };
 
     const exportCSV = () => {
-        const headers = ["Member", "Project", "Score", "Status"];
+        const headers = [
+            "Member",
+            "Score",
+            "Status",
+            "Completed Tasks",
+            "Allocated Hours",
+            "Used Hours"
+        ];
 
         const rows = records.map(record => [
-            record.memberId?.name,
-            record.projectId?.name,
+            record.name,
             record.score,
-            record.statusTag
+            record.status,
+            `${record.completedTasks}/${record.totalTasks}`,
+            record.allocatedHours,
+            record.usedHours
         ]);
 
         const csv = [
@@ -75,11 +85,11 @@ function Performance() {
 
     const badge = (tag) => {
         switch (tag) {
-            case "Exceeding":
+            case "Excellent":
                 return "success";
-            case "On Track":
+            case "Good":
                 return "primary";
-            case "Lagging":
+            case "Average":
                 return "warning";
             case "Critical":
                 return "danger";
@@ -108,32 +118,36 @@ function Performance() {
             ) : (
                 <>
                     <PerformanceChart data={records} />
-                    <table className="table table-bordered table-hover">
-                        <thead className="table-dark">
-                            <tr>
-                                <th>Member</th>
-                                <th>Project</th>
-                                <th>Score</th>
-                                <th>Status</th>
-                                <th>Computed</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {records.map(record => (
-                                <tr key={record._id}>
-                                    <td>{record.memberId?.name}</td>
-                                    <td>{record.projectId?.name}</td>
-                                    <td>{record.score}</td>
-                                    <td>
-                                        <span className={`badge bg-${badge(record.statusTag)}`}>
-                                            {record.statusTag}
-                                        </span>
-                                    </td>
-                                    <td>{record.computedAt?.substring(0, 10)}</td>
+                    <div className="table-responsive">
+                        <table className="table table-hover align-middle">
+                            <thead className="table-dark">
+                                <tr>
+                                    <th>Member</th>
+                                    <th>Completed</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                    <th>Hours</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {records.map(record => (
+                                    <tr key={record._id}>
+                                        <td>{record.name}</td>
+                                        <td>{record.completedTasks}/{record.totalTasks}</td>
+                                        <td>{record.score}</td>
+                                        <td>
+                                            <span className={`badge bg-${badge(record.status)}`}>
+                                                {record.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {record.usedHours}/{record.allocatedHours}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </>
             )}
         </MainLayout>
