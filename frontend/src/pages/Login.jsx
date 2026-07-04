@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/authApi";
+import { showError, showSuccess } from "../components/AppToast";
 
 import {
   FaEnvelope,
@@ -46,12 +47,11 @@ function Login() {
         JSON.stringify(res.data.user)
       );
 
-      // Later we'll replace this with AppToast
-      alert("Login Successful");
+      showSuccess("Login Successful");
 
       navigate("/dashboard");
     } catch (error) {
-      alert("Invalid Email or Password");
+      showError("Invalid Email or Password");
     } finally {
       setLoading(false);
     }
