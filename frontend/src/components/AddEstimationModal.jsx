@@ -121,7 +121,7 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
                         <Form.Control
                             type="text"
                             name="quotedPrice"
-                            value={`â‚¹ ${formData.quotedPrice}`}
+                            value={` ${formData.quotedPrice}`}
                             readOnly
                             disabled
                         />

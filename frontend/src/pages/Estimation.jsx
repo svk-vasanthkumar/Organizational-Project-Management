@@ -120,8 +120,8 @@ function Estimation() {
                                 <tr key={item._id}>
                                     <td>{item.projectId?.name}</td>
                                     <td>{item.estimatedHours}</td>
-                                    <td>â‚¹ {item.hourlyRate}</td>
-                                    <td>â‚¹ {item.quotedPrice}</td>
+                                    <td> {item.hourlyRate}</td>
+                                    <td> {item.quotedPrice}</td>
                                     <td>{item.status || item.approvalStatus}</td>
                                     <td>
                                         <button
