@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // ================= REGISTER =================
 const register = async (req, res) => {
@@ -43,9 +44,9 @@ const register = async (req, res) => {
 // ================= LOGIN =================
 const login = async (req, res) => {
   try {
+
     const { email, password } = req.body;
 
-    // Find user
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -55,8 +56,10 @@ const login = async (req, res) => {
       });
     }
 
-    // Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!isMatch) {
       return res.status(401).json({
@@ -65,21 +68,37 @@ const login = async (req, res) => {
       });
     }
 
+    // Generate JWT
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+
     res.status(200).json({
       success: true,
       message: "Login Successful",
-      data: {
+      token,
+      user: {
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
       },
     });
+
   } catch (error) {
+
     res.status(500).json({
       success: false,
       message: error.message,
     });
+
   }
 };
 
