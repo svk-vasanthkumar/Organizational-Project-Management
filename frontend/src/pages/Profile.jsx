@@ -7,6 +7,7 @@ import {
     updateProfile,
     changePassword,
 } from "../api/userApi";
+import { showSuccess, showError } from "../components/AppToast";
 
 function Profile() {
     const [loading, setLoading] = useState(true);
@@ -59,16 +60,16 @@ function Profile() {
                 name: formData.name,
                 email: formData.email,
             });
-            alert("Profile Updated");
+            showSuccess("Profile Updated");
             loadProfile();
         } catch (err) {
-            alert(err.response?.data?.message || "Update Failed");
+            showError(err.response?.data?.message || "Update Failed");
         }
     };
 
     const handleChangePassword = async () => {
         if (passwordData.newPassword !== passwordData.confirmPassword) {
-            alert("Passwords do not match.");
+            showError("Passwords do not match.");
             return;
         }
 
@@ -78,7 +79,7 @@ function Profile() {
                 newPassword: passwordData.newPassword,
             });
 
-            alert("Password changed successfully.");
+            showSuccess("Password changed successfully.");
 
             setPasswordData({
                 currentPassword: "",
@@ -86,7 +87,7 @@ function Profile() {
                 confirmPassword: "",
             });
         } catch (err) {
-            alert(err.response?.data?.message || "Password change failed.");
+            showError(err.response?.data?.message || "Password change failed.");
         }
     };
 
