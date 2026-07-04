@@ -1,6 +1,7 @@
 const express = require("express");
 
 const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
 
 const {
     getProjectSummary,
@@ -8,10 +9,10 @@ const {
     getLagAttribution
 } = require("../controllers/reportController");
 
-router.get("/project-summary", getProjectSummary);
+router.get("/project-summary", authMiddleware,  getProjectSummary);
 
-router.get("/member-performance", getMemberPerformance);
+router.get("/member-performance", authMiddleware,  getMemberPerformance);
 
-router.get("/lag-attribution", getLagAttribution);
+router.get("/lag-attribution", authMiddleware,  getLagAttribution);
 
 module.exports = router;
