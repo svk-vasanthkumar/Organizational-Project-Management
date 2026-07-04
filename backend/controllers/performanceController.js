@@ -3,101 +3,98 @@ const Task = require("../models/Task");
 const BreachLog = require("../models/BreachLog");
 const TeamMember = require("../models/TeamMember");
 
+// =========================================================================
+// GET PERFORMANCE (Aggregated Global Team Member Processing Matrix)
+// =========================================================================
 const getPerformance = async (req, res) => {
   try {
+    // Pull down every team member to compile the macro scorecard
+    const members = await TeamMember.find();
 
-    const { memberId, projectId } = req.params;
+    const performance = await Promise.all(
+      members.map(async (member) => {
+        // Gather all project context boundaries assigned to this specific member
+        const assignments = await ProjectAssignment.find({
+          memberId: member._id
+        });
 
-    // Assignment
-    const assignment = await ProjectAssignment.findOne({
-      memberId,
-      projectId,
-    });
+        const allocatedHours = assignments.reduce(
+          (sum, item) => sum + item.allocatedHours,
+          0
+        );
 
-    if (!assignment) {
-      return res.status(404).json({
-        success: false,
-        message: "Assignment not found",
-      });
-    }
+        const usedHours = assignments.reduce(
+          (sum, item) => sum + item.hoursUsed,
+          0
+        );
 
-    // Tasks
-    const tasks = await Task.find({
-      assignedTo: memberId,
-      projectId,
-    });
+        // Fetch task execution array spanning all assignments for this user
+        const tasks = await Task.find({
+          assignedTo: member._id
+        });
 
-    const completedTasks = tasks.filter(
-      task => task.status === "Completed"
-    ).length;
+        const totalTasks = tasks.length;
+        const completedTasks = tasks.filter(
+          t => t.status === "Completed"
+        ).length;
 
-    const totalTasks = tasks.length;
+        // Use countDocuments directly instead of loading arrays into memory
+        const breaches = await BreachLog.countDocuments({
+          memberId: member._id
+        });
 
-    // Breaches
-    const breaches = await BreachLog.find({
-      memberId,
-    });
+        // Compute completion percentage safely without division by zero errors
+        const completion =
+          totalTasks === 0
+            ? 0
+            : Math.round((completedTasks / totalTasks) * 100);
 
-    const breachCount = breaches.length;
+        // Dynamic formula evaluation with mathematical clamping logic
+        let score =
+          100 -
+          breaches * 10 -
+          (totalTasks - completedTasks) * 5 +
+          completedTasks * 2;
 
-    // Hours
-    const allocatedHours = assignment.allocatedHours;
-    const usedHours = assignment.hoursUsed;
-    const remainingHours = allocatedHours - usedHours;
+        score = Math.max(0, Math.min(score, 100));
 
-    // Completion %
-    const completionPercentage =
-      totalTasks === 0
-        ? 0
-        : Math.round(
-            (completedTasks / totalTasks) * 100
-          );
+        // Evaluate performance tiers
+        let status = "Critical";
+        if (score >= 90) status = "Excellent";
+        else if (score >= 70) status = "Good";
+        else if (score >= 50) status = "Average";
 
-    // Score
-    let score =
-      100 -
-      breachCount * 10 -
-      (totalTasks - completedTasks) * 5 +
-      completedTasks * 2;
-
-    if (score > 100) score = 100;
-    if (score < 0) score = 0;
-
-    // Status
-    let status = "";
-
-    if (score >= 90)
-      status = "Exceeding";
-    else if (score >= 70)
-      status = "On Track";
-    else if (score >= 50)
-      status = "Lagging";
-    else
-      status = "Critical";
-
-    const member = await TeamMember.findById(memberId);
+        return {
+          _id: member._id,
+          name: member.name,
+          role: member.role || "Team Member", // Included role metadata for clean table visualization
+          allocatedHours,
+          usedHours,
+          remainingHours: allocatedHours - usedHours,
+          totalTasks,
+          completedTasks,
+          completion,
+          breaches,
+          score,
+          status,
+        };
+      })
+    );
 
     res.status(200).json({
       success: true,
-      member: member.name,
-      allocatedHours,
-      usedHours,
-      remainingHours,
-      tasksAssigned: totalTasks,
-      tasksCompleted: completedTasks,
-      completionPercentage,
-      breachCount,
-      score,
-      status,
+      data: performance,
     });
-
   } catch (error) {
+    // Diagnostic log capture tracking block
+    console.error("=== PERFORMANCE ROUTE REFACTOR COUPLING FAILURE ===");
+    console.error(error);
+    console.error("====================================================");
 
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
