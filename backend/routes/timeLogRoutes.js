@@ -1,14 +1,23 @@
-const express=require("express");
-
-const router=express.Router();
+const express = require("express");
+const router = express.Router();
 
 const {
-createTimeLog,
-getTimeLogs
-}=require("../controllers/timeLogController");
+  createTimeLog,
+  getTimeLogs,
+  updateTimeLog,
+  deleteTimeLog,
+} = require("../controllers/timeLogController");
 
-router.post("/",createTimeLog);
+// Create
+router.post("/", createTimeLog);
 
-router.get("/",getTimeLogs);
+// Get All
+router.get("/", getTimeLogs);
 
-module.exports=router;
+// Update
+router.put("/:id", updateTimeLog);
+
+// Delete
+router.delete("/:id", deleteTimeLog);
+
+module.exports = router;
