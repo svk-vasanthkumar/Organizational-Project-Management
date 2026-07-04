@@ -4,10 +4,12 @@ import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getProjectDeliveries } from "../api/projectDeliveryApi";
+import { showError } from "../components/AppToast";
 
 function ProjectDelivery() {
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadDeliveries();
@@ -18,20 +20,37 @@ function ProjectDelivery() {
             const res = await getProjectDeliveries();
             setDeliveries(res.data.data);
         } catch (err) {
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load deliveries");
         } finally {
             setLoading(false);
         }
     };
 
+    const filteredDeliveries = deliveries.filter(item => {
+        const key = search.toLowerCase();
+        return (
+            item.projectName?.toLowerCase().includes(key) ||
+            item.status?.toLowerCase().includes(key)
+        );
+    });
+
     return (
         <MainLayout>
             <PageHeader title="Project Delivery" />
 
+            <div className="mb-3">
+                <input
+                    className="form-control"
+                    placeholder="Search Project or Status..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
+
             {loading ? (
                 <Loader />
-            ) : deliveries.length === 0 ? (
-                <EmptyState message="No Deliveries Found" />
+            ) : filteredDeliveries.length === 0 ? (
+                <EmptyState message={search ? "No matching deliveries found" : "No Deliveries Found"} />
             ) : (
                 <div className="table-responsive">
                     <table className="table table-hover align-middle">
@@ -46,7 +65,7 @@ function ProjectDelivery() {
                             </tr>
                         </thead>
                         <tbody>
-                            {deliveries.map(item => (
+                            {filteredDeliveries.map(item => (
                                 <tr key={item._id}>
                                     <td>{item.projectName}</td>
                                     <td>
