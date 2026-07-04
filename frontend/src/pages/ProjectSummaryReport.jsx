@@ -4,11 +4,13 @@ import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getProjectSummary } from "../api/reportApi";
+import { showError } from "../components/AppToast";
 
 function ProjectSummaryReport() {
 
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadReport();
@@ -24,7 +26,7 @@ function ProjectSummaryReport() {
 
         } catch (err) {
 
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load project summary report");
 
         } finally {
 
@@ -34,11 +36,24 @@ function ProjectSummaryReport() {
 
     };
 
+    const filteredReports = reports.filter((item) =>
+        item.project?.toLowerCase().includes(search.toLowerCase())
+    );
+
     return (
 
         <MainLayout>
 
             <PageHeader title="Project Summary Report" />
+
+            <div className="mb-3">
+                <input
+                    className="form-control"
+                    placeholder="Search Project..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
 
             {
 
@@ -48,13 +63,15 @@ function ProjectSummaryReport() {
 
                 :
 
-                reports.length === 0 ?
+                filteredReports.length === 0 ?
 
-                <EmptyState message="No Report Data" />
+                <EmptyState message={search ? "No matching report data found" : "No Report Data"} />
 
                 :
 
-                <table className="table table-bordered table-hover">
+                <div className="table-responsive">
+
+                    <table className="table table-bordered table-hover">
 
                     <thead className="table-dark">
 
@@ -80,7 +97,7 @@ function ProjectSummaryReport() {
 
                         {
 
-                            reports.map((item, index) => (
+                            filteredReports.map((item, index) => (
 
                                 <tr key={index}>
 
@@ -108,7 +125,9 @@ function ProjectSummaryReport() {
 
                     </tbody>
 
-                </table>
+                    </table>
+
+                </div>
 
             }
 
