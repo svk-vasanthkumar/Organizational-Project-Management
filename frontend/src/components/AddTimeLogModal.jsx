@@ -4,6 +4,7 @@ import { Modal, Button, Form } from "react-bootstrap";
 import { getTasks } from "../api/taskApi";
 import { getMembers } from "../api/teamMemberApi";
 import { createTimeLog } from "../api/timeLogApi";
+import { showError, showSuccess } from "./AppToast";
 
 function AddTimeLogModal({
     show,
@@ -60,11 +61,13 @@ function AddTimeLogModal({
 
             handleClose();
 
+            showSuccess("Time Logged");
+
         }catch(err){
 
             console.log(err);
 
-            alert("Failed");
+            showError("Failed");
 
         }
 
