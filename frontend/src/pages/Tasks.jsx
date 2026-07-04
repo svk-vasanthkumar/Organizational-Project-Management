@@ -6,6 +6,7 @@ import EmptyState from "../components/EmptyState";
 import StatusBadge from "../components/StatusBadge";
 import { getTasks, deleteTask } from "../api/taskApi";
 import AddTaskModal from "../components/AddTaskModal";
+import { showError } from "../components/AppToast";
 
 function Tasks() {
     const [tasks, setTasks] = useState([]);
@@ -36,7 +37,7 @@ function Tasks() {
             setDeletingId(null);
             loadTasks();
         } catch (err) {
-            alert(err.response?.data?.message || "Delete Failed");
+            showError(err.response?.data?.message || "Delete Failed");
         }
     };
 
