@@ -15,6 +15,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
         endDate: "",
         scope: ""
     });
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (selectedProject) {
@@ -53,6 +54,8 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
     };
 
     const handleSave = async () => {
+        if (saving) return;
+        setSaving(true);
         try {
             if (selectedProject) {
                 await updateProject(selectedProject._id, formData);
@@ -64,14 +67,15 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
             refreshProjects();
             handleClose();
         } catch (error) {
-            console.log(error);
-            showError("Operation Failed");
+            showError(error.response?.data?.message || "Operation Failed");
+        } finally {
+            setSaving(false);
         }
     };
 
     return (
-        <Modal show={show} onHide={handleClose} size="lg">
-            <Modal.Header closeButton>
+        <Modal show={show} onHide={handleClose} size="lg" backdrop={saving ? "static" : true}>
+            <Modal.Header closeButton={!saving}>
                 <Modal.Title>
                     {selectedProject ? "Edit Project" : "Add New Project"}
                 </Modal.Title>
@@ -87,6 +91,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
 
@@ -97,6 +102,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="client"
                                 value={formData.client}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
 
@@ -107,6 +113,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="type"
                                 value={formData.type}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
 
@@ -116,6 +123,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="priority"
                                 value={formData.priority}
                                 onChange={handleChange}
+                                disabled={saving}
                             >
                                 <option value="Low">Low</option>
                                 <option value="Medium">Medium</option>
@@ -130,6 +138,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="totalHours"
                                 value={formData.totalHours}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
 
@@ -140,6 +149,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="budget"
                                 value={formData.budget}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
 
@@ -150,6 +160,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="startDate"
                                 value={formData.startDate}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
 
@@ -160,6 +171,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="endDate"
                                 value={formData.endDate}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
 
@@ -171,6 +183,7 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
                                 name="scope"
                                 value={formData.scope}
                                 onChange={handleChange}
+                                disabled={saving}
                             />
                         </div>
                     </div>
@@ -178,12 +191,12 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
+                <Button variant="secondary" onClick={handleClose} disabled={saving}>
                     Cancel
                 </Button>
 
-                <Button variant="primary" onClick={handleSave}>
-                    {selectedProject ? "Update Project" : "Save Project"}
+                <Button variant="primary" onClick={handleSave} disabled={saving}>
+                    {saving ? (selectedProject ? "Updating..." : "Saving...") : selectedProject ? "Update Project" : "Save Project"}
                 </Button>
             </Modal.Footer>
         </Modal>
