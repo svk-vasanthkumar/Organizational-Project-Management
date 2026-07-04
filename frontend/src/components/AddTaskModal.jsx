@@ -5,6 +5,7 @@ import { getProjects } from "../api/projectApi";
 import { createTask, updateTask } from "../api/taskApi";
 // Crucial: Ensure this API endpoint is defined to fetch project specific assignments
 import { getAssignmentsByProject } from "../api/assignmentApi"; 
+import { showError, showSuccess, showWarning } from "./AppToast";
 
 function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
     const [projects, setProjects] = useState([]);
@@ -137,7 +138,7 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
     const handleSave = async () => {
         const validationError = validateForm();
         if (validationError) {
-            alert(validationError);
+            showWarning(validationError);
             return;
         }
 
@@ -150,9 +151,10 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
             }
             refreshTasks();
             handleClose();
+            showSuccess(selectedTask ? "Task Updated Successfully" : "Task Created Successfully");
         } catch (err) {
             console.error("Error saving task:", err);
-            alert("Failed to save task. Please try again.");
+            showError("Failed to save task. Please try again.");
         } finally {
             setIsSaving(false);
         }
