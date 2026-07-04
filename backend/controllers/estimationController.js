@@ -54,6 +54,81 @@ const getEstimations = async (req, res) => {
   }
 };
 
+// =====================================
+// UPDATE ESTIMATION
+// =====================================
+const updateEstimation = async (req, res) => {
+  try {
+    const {
+      estimatedHours,
+      hourlyRate,
+      approvalStatus,
+    } = req.body;
+
+    const quotedPrice = estimatedHours * hourlyRate;
+
+    const estimation = await Estimation.findByIdAndUpdate(
+      req.params.id,
+      {
+        estimatedHours,
+        hourlyRate,
+        quotedPrice,
+        approvalStatus,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!estimation) {
+      return res.status(404).json({
+        success: false,
+        message: "Estimation not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Estimation updated successfully.",
+      data: estimation,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// =====================================
+// DELETE ESTIMATION
+// =====================================
+const deleteEstimation = async (req, res) => {
+  try {
+    const estimation = await Estimation.findByIdAndDelete(req.params.id);
+
+    if (!estimation) {
+      return res.status(404).json({
+        success: false,
+        message: "Estimation not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Estimation deleted successfully.",
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 // Update Approval Status
 const updateApprovalStatus = async (req, res) => {
   try {
@@ -140,7 +215,9 @@ const rejectEstimation = async (req, res) => {
 module.exports = {
   createEstimation,
   getEstimations,
+  updateEstimation,
+  deleteEstimation,
   updateApprovalStatus,
   approveEstimation,
-  rejectEstimation
+  rejectEstimation,
 };
