@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-// Change 1: Import Update API alongside createAssignment
 import { createAssignment, updateAssignment } from "../api/assignmentApi";
 import { getProjects } from "../api/projectApi";
 import { getMembers } from "../api/teamMemberApi";
+import { showError, showSuccess } from "./AppToast";
 
-// Change 2: Accept assignmentData via incoming properties
 function AddAssignmentModal({
   show,
   handleClose,
@@ -14,6 +13,7 @@ function AddAssignmentModal({
 }) {
   const [projects, setProjects] = useState([]);
   const [members, setMembers] = useState([]);
+  const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
     projectId: "",
@@ -29,7 +29,6 @@ function AddAssignmentModal({
   }
 }, [show]);
 
-  // Change 3: Watch assignmentData context updates to automatically branch form fill behavior
   useEffect(() => {
     if (assignmentData) {
       setFormData({
@@ -60,7 +59,7 @@ function AddAssignmentModal({
       setProjects(projectRes.data.data);
       setMembers(memberRes.data.data);
     } catch (err) {
-      console.error(err);
+      showError(err.response?.data?.message || "Failed to load form data");
     }
   };
 
@@ -71,8 +70,9 @@ function AddAssignmentModal({
     });
   };
 
-  // Change 4: Dynamic endpoint routing based on identity state logic
   const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
     try {
       if (assignmentData) {
         await updateAssignment(assignmentData._id, formData);
@@ -82,6 +82,7 @@ function AddAssignmentModal({
 
       refreshAssignments();
       handleClose();
+      showSuccess(assignmentData ? "Assignment Updated Successfully" : "Member Assigned Successfully");
 
       setFormData({
         projectId: "",
@@ -91,15 +92,15 @@ function AddAssignmentModal({
         startDate: "",
       });
     } catch (err) {
-      console.error(err);
-      // Maintained layout execution standard, logged to dev console for toast engine conversion later
+      showError(err.response?.data?.message || "Failed to save assignment");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <Modal show={show} onHide={handleClose}>
-      <Modal.Header closeButton>
-        {/* Change 5: Dynamic header string context */}
+    <Modal show={show} onHide={handleClose} backdrop={saving ? "static" : true}>
+      <Modal.Header closeButton={!saving}>
         <Modal.Title>
           {assignmentData ? "Edit Assignment" : "Assign Member"}
         </Modal.Title>
@@ -109,12 +110,11 @@ function AddAssignmentModal({
         <Form>
           <Form.Group className="mb-3">
             <Form.Label>Project</Form.Label>
-            {/* Change 7: Force dynamic disabled restrictions during update cycles */}
             <Form.Select
               name="projectId"
               value={formData.projectId}
               onChange={handleChange}
-              disabled={!!assignmentData}
+              disabled={!!assignmentData || saving}
             >
               <option value="">Select Project</option>
               {projects.map((project) => (
@@ -127,12 +127,11 @@ function AddAssignmentModal({
 
           <Form.Group className="mb-3">
             <Form.Label>Member</Form.Label>
-            {/* Change 7: Force dynamic disabled restrictions during update cycles */}
             <Form.Select
               name="memberId"
               value={formData.memberId}
               onChange={handleChange}
-              disabled={!!assignmentData}
+              disabled={!!assignmentData || saving}
             >
               <option value="">Select Member</option>
               {members.map((member) => (
@@ -149,6 +148,7 @@ function AddAssignmentModal({
               name="role"
               value={formData.role}
               onChange={handleChange}
+              disabled={saving}
             />
           </Form.Group>
 
@@ -159,6 +159,7 @@ function AddAssignmentModal({
               name="allocatedHours"
               value={formData.allocatedHours}
               onChange={handleChange}
+              disabled={saving}
             />
           </Form.Group>
 
@@ -169,18 +170,18 @@ function AddAssignmentModal({
               name="startDate"
               value={formData.startDate}
               onChange={handleChange}
+              disabled={saving}
             />
           </Form.Group>
         </Form>
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={handleClose}>
+        <Button variant="secondary" onClick={handleClose} disabled={saving}>
           Cancel
         </Button>
-        <Button variant="primary" onClick={handleSave}>
-          {/* Change 6: Dynamic visual label processing */}
-          {assignmentData ? "Update" : "Assign"}
+        <Button variant="primary" onClick={handleSave} disabled={saving}>
+          {saving ? (assignmentData ? "Updating..." : "Assigning...") : assignmentData ? "Update" : "Assign"}
         </Button>
       </Modal.Footer>
     </Modal>
