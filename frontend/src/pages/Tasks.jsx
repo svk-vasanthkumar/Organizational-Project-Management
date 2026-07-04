@@ -6,7 +6,8 @@ import EmptyState from "../components/EmptyState";
 import StatusBadge from "../components/StatusBadge";
 import { getTasks, deleteTask } from "../api/taskApi";
 import AddTaskModal from "../components/AddTaskModal";
-import { showError } from "../components/AppToast";
+import ConfirmModal from "../components/ConfirmModal";
+import { showError, showSuccess } from "../components/AppToast";
 
 function Tasks() {
     const [tasks, setTasks] = useState([]);
@@ -14,7 +15,9 @@ function Tasks() {
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
-    const [deletingId, setDeletingId] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         loadTasks();
@@ -25,19 +28,25 @@ function Tasks() {
             const res = await getTasks();
             setTasks(res.data.data || res.data);
         } catch (err) {
-            console.error("Error loading tasks:", err);
+            showError(err.response?.data?.message || "Failed to load tasks");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = async () => {
+        if (!selectedId || deleting) return;
+        setDeleting(true);
         try {
-            await deleteTask(id);
-            setDeletingId(null);
-            loadTasks();
+            await deleteTask(selectedId);
+            await loadTasks();
+            showSuccess("Task Deleted Successfully");
         } catch (err) {
             showError(err.response?.data?.message || "Delete Failed");
+        } finally {
+            setDeleting(false);
+            setShowDeleteModal(false);
+            setSelectedId(null);
         }
     };
 
@@ -61,7 +70,6 @@ function Tasks() {
             <div className="mb-3">
                 <input
                     className="form-control"
-                    // Change 5: Expanded search placeholder text context
                     placeholder="Search Task, Project or Member..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -71,7 +79,6 @@ function Tasks() {
             {loading ? (
                 <Loader />
             ) : filteredTasks.length === 0 ? (
-                // Change 6: Added contextual messaging switch based on search query presence
                 <EmptyState 
                     message={search ? "No matching task found." : "No tasks available."} 
                 />
@@ -84,7 +91,6 @@ function Tasks() {
                                 <th>Project</th>
                                 <th>Assigned To</th>
                                 <th>Hours</th>
-                                {/* Change 1: Added Logged tracking header column */}
                                 <th>Logged</th>
                                 <th>Priority</th>
                                 <th>Progress</th>
@@ -101,12 +107,10 @@ function Tasks() {
                                     <td>{task.projectId?.name || "N/A"}</td>
                                     <td>{task.assignedTo?.name || "Unassigned"}</td>
                                     <td>{task.estimatedHours}</td>
-                                    {/* Change 1: Added structural Logged data cell */}
                                     <td>{task.loggedHours || 0}</td>
                                     <td>{task.priority || "Medium"}</td>
                                     
                                     <td style={{ minWidth: "140px" }}>
-                                        {/* Change 3: Dynamically switched color themes based on task completion percent metrics */}
                                         <div className="progress" style={{ height: "8px" }}>
                                             <div
                                                 className={`progress-bar ${
@@ -122,12 +126,10 @@ function Tasks() {
                                         <small>{task.progress || 0}%</small>
                                     </td>
                                     
-                                    {/* Change 2: Prevented negative runtime calculations via Math.max safety wrapper */}
                                     <td>
                                         {Math.max(0, task.remainingHours ?? (task.estimatedHours - (task.loggedHours || 0)))}
                                     </td>
                                     
-                                    {/* Change 4: Highlighted overdue incomplete tasks via explicit bootstrap text utility classes */}
                                     <td>
                                         {new Date(task.deadline) < new Date() && task.status !== "Completed" ? (
                                             <span className="text-danger fw-semibold">
@@ -143,40 +145,25 @@ function Tasks() {
                                     </td>
                                     
                                     <td>
-                                        {deletingId === task._id ? (
-                                            <>
-                                                <button
-                                                    className="btn btn-danger btn-sm me-2"
-                                                    onClick={() => handleDelete(task._id)}
-                                                >
-                                                    Confirm
-                                                </button>
-                                                <button
-                                                    className="btn btn-secondary btn-sm"
-                                                    onClick={() => setDeletingId(null)}
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <button
-                                                    className="btn btn-warning btn-sm me-2"
-                                                    onClick={() => {
-                                                        setSelectedTask(task);
-                                                        setShowModal(true);
-                                                    }}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    className="btn btn-outline-danger btn-sm"
-                                                    onClick={() => setDeletingId(task._id)}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </>
-                                        )}
+                                        <button
+                                            className="btn btn-warning btn-sm me-2"
+                                            onClick={() => {
+                                                setSelectedTask(task);
+                                                setShowModal(true);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="btn btn-outline-danger btn-sm"
+                                            onClick={() => {
+                                                setSelectedId(task._id);
+                                                setShowDeleteModal(true);
+                                            }}
+                                            disabled={deleting}
+                                        >
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -193,6 +180,19 @@ function Tasks() {
                 }}
                 refreshTasks={loadTasks}
                 selectedTask={selectedTask}
+            />
+
+            <ConfirmModal
+                show={showDeleteModal}
+                title="Delete Task"
+                message="Are you sure you want to delete this task?"
+                confirmText={deleting ? "Deleting..." : "Delete"}
+                onClose={() => {
+                    if (deleting) return;
+                    setShowDeleteModal(false);
+                    setSelectedId(null);
+                }}
+                onConfirm={handleDelete}
             />
         </MainLayout>
     );
