@@ -4,11 +4,13 @@ import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getMemberPerformance } from "../api/reportApi";
+import { showError } from "../components/AppToast";
 
 function MemberPerformanceReport() {
 
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadReport();
@@ -24,7 +26,7 @@ function MemberPerformanceReport() {
 
         } catch (err) {
 
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load member performance report");
 
         } finally {
 
@@ -34,11 +36,29 @@ function MemberPerformanceReport() {
 
     };
 
+    const filteredReports = reports.filter((item) => {
+        const key = search.toLowerCase();
+        return (
+            item.memberId?.name?.toLowerCase().includes(key) ||
+            item.projectId?.name?.toLowerCase().includes(key) ||
+            item.statusTag?.toLowerCase().includes(key)
+        );
+    });
+
     return (
 
         <MainLayout>
 
             <PageHeader title="Member Performance Report" />
+
+            <div className="mb-3">
+                <input
+                    className="form-control"
+                    placeholder="Search Member, Project or Status..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
 
             {
 
@@ -48,13 +68,15 @@ function MemberPerformanceReport() {
 
                 :
 
-                reports.length === 0 ?
+                filteredReports.length === 0 ?
 
-                <EmptyState message="No Performance Data" />
+                <EmptyState message={search ? "No matching performance data found" : "No Performance Data"} />
 
                 :
 
-                <table className="table table-bordered table-hover">
+                <div className="table-responsive">
+
+                    <table className="table table-bordered table-hover">
 
                     <thead className="table-dark">
 
@@ -73,7 +95,7 @@ function MemberPerformanceReport() {
 
                         {
 
-                            reports.map((item) => (
+                            filteredReports.map((item) => (
 
                                 <tr key={item._id}>
 
@@ -93,7 +115,9 @@ function MemberPerformanceReport() {
 
                     </tbody>
 
-                </table>
+                    </table>
+
+                </div>
 
             }
 
