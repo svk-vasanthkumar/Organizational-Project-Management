@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { createEstimation } from "../api/estimationApi";
 import { getProjects } from "../api/projectApi";
+import { showError } from "./AppToast";
 
 function AddEstimationModal({ show, handleClose, refreshEstimations }) {
     const [projects, setProjects] = useState([]);
@@ -52,7 +53,7 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
             handleClose();
         } catch (err) {
             console.log(err);
-            alert("Failed to save estimation");
+            showError("Failed to save estimation");
         }
     };
 
