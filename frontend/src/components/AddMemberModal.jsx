@@ -11,6 +11,7 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
         role: "",
         department: ""
     });
+    const [saving, setSaving] = useState(false);
 
     const handleChange = (e) => {
 
@@ -22,6 +23,8 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
     };
 
     const handleSave = async () => {
+        if (saving) return;
+        setSaving(true);
 
         try {
 
@@ -42,9 +45,11 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
 
         } catch (err) {
 
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to add member");
 
-            showError("Failed to add member");
+        } finally {
+
+            setSaving(false);
 
         }
 
@@ -52,9 +57,9 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
 
     return (
 
-        <Modal show={show} onHide={handleClose}>
+        <Modal show={show} onHide={handleClose} backdrop={saving ? "static" : true}>
 
-            <Modal.Header closeButton>
+            <Modal.Header closeButton={!saving}>
                 <Modal.Title>Add Team Member</Modal.Title>
             </Modal.Header>
 
@@ -68,6 +73,7 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
+                            disabled={saving}
                         />
                     </Form.Group>
 
@@ -77,6 +83,7 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
+                            disabled={saving}
                         />
                     </Form.Group>
 
@@ -86,6 +93,7 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
                             name="role"
                             value={formData.role}
                             onChange={handleChange}
+                            disabled={saving}
                         />
                     </Form.Group>
 
@@ -95,6 +103,7 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
                             name="department"
                             value={formData.department}
                             onChange={handleChange}
+                            disabled={saving}
                         />
                     </Form.Group>
 
@@ -107,6 +116,7 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
                 <Button
                     variant="secondary"
                     onClick={handleClose}
+                    disabled={saving}
                 >
                     Cancel
                 </Button>
@@ -114,8 +124,9 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
                 <Button
                     variant="primary"
                     onClick={handleSave}
+                    disabled={saving}
                 >
-                    Save Member
+                    {saving ? "Saving..." : "Save Member"}
                 </Button>
 
             </Modal.Footer>
