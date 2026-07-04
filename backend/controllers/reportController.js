@@ -1,7 +1,7 @@
 const Project = require("../models/Project");
 const Task = require("../models/Task");
 const ProjectAssignment = require("../models/ProjectAssignment");
-const Performance = require("../models/PerformanceRecord");
+const TeamMember = require("../models/TeamMember");
 const BreachLog = require("../models/BreachLog");
 
 // Project Summary
@@ -67,16 +67,76 @@ const getProjectSummary = async (req, res) => {
 
 // Member Performance
 const getMemberPerformance = async (req, res) => {
-
     try {
 
-        const data = await Performance.find()
-            .populate("memberId")
-            .populate("projectId");
+        const members = await TeamMember.find();
+
+        const result = await Promise.all(
+
+            members.map(async (member) => {
+
+                const assignments = await ProjectAssignment.find({
+                    memberId: member._id
+                });
+
+                const tasks = await Task.find({
+                    assignedTo: member._id
+                });
+
+                const breaches = await BreachLog.countDocuments({
+                    memberId: member._id
+                });
+
+                const allocatedHours = assignments.reduce(
+                    (sum, item) => sum + item.allocatedHours,
+                    0
+                );
+
+                const usedHours = assignments.reduce(
+                    (sum, item) => sum + item.hoursUsed,
+                    0
+                );
+
+                const completedTasks = tasks.filter(
+                    t => t.status === "Completed"
+                ).length;
+
+                const totalTasks = tasks.length;
+
+                let score =
+                    100 -
+                    breaches * 10 -
+                    (totalTasks - completedTasks) * 5 +
+                    completedTasks * 2;
+
+                score = Math.max(0, Math.min(score, 100));
+
+                let status = "Critical";
+
+                if (score >= 90)
+                    status = "Excellent";
+                else if (score >= 70)
+                    status = "Good";
+                else if (score >= 50)
+                    status = "Average";
+
+                return {
+                    member: member.name,
+                    allocatedHours,
+                    usedHours,
+                    completedTasks,
+                    totalTasks,
+                    score,
+                    status,
+                };
+
+            })
+
+        );
 
         res.json({
             success: true,
-            data
+            data: result
         });
 
     } catch (err) {
@@ -87,7 +147,6 @@ const getMemberPerformance = async (req, res) => {
         });
 
     }
-
 };
 
 // Lag Attribution
