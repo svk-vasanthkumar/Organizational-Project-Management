@@ -5,6 +5,7 @@ import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import PerformanceChart from "../components/PerformanceChart";
 import { getPerformance } from "../api/performanceApi";
+import { showError } from "../components/AppToast";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -21,7 +22,7 @@ function Performance() {
             const res = await getPerformance();
             setRecords(res.data.data);
         } catch (err) {
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load performance data");
         } finally {
             setLoading(false);
         }
