@@ -1,53 +1,50 @@
 const BreachLog = require("../models/BreachLog");
+const Task = require("../models/Task");
 
-const createBreachLog = async (req, res) => {
-
-    try {
-
-        const breach = await BreachLog.create(req.body);
-
-        res.status(201).json({
-            success: true,
-            data: breach
-        });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
-
-};
-
+// ========================================================================
+// GET BREACH LOGS
+// ========================================================================
 const getBreachLogs = async (req, res) => {
+  try {
+    // Auto-create missing breach logs for any task past its deadline
+    const overdueTasks = await Task.find({
+      deadline: { $lt: new Date() },
+      status: { $ne: "Completed" },
+    });
 
-    try {
+    for (const task of overdueTasks) {
+      const exists = await BreachLog.findOne({
+        taskId: task._id,
+      });
 
-        const logs = await BreachLog.find()
-            .populate("taskId")
-            .populate("memberId");
-
-        res.json({
-            success: true,
-            count: logs.length,
-            data: logs
+      if (!exists) {
+        await BreachLog.create({
+          taskId: task._id,
+          memberId: task.assignedTo,
+          originalDeadline: task.deadline,
+          revisedDeadline: null,
+          reason: "Task deadline exceeded",
         });
-
-    } catch (error) {
-
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
+      }
     }
 
+    const logs = await BreachLog.find()
+      .populate("taskId")
+      .populate("memberId");
+
+    res.status(200).json({
+      success: true,
+      count: logs.length,
+      data: logs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
 
 module.exports = {
-    createBreachLog,
-    getBreachLogs
+  getBreachLogs,
 };
