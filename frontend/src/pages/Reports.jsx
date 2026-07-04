@@ -11,11 +11,14 @@ function Reports() {
 
             <div className="row">
                 <div className="col-md-4">
-                    <div className="card shadow-sm">
-                        <div className="card-body">
+                    <div className="card shadow-sm h-100 border-0">
+                        <div className="card-body d-flex flex-column">
                             <h5>Project Summary</h5>
+                            <p className="text-muted small">
+                                Budget, hours, tasks and completion report.
+                            </p>
                             <button 
-                                className="btn btn-primary mt-3"
+                                className="btn btn-primary mt-auto w-100"
                                 onClick={() => navigate("/reports/project-summary")}
                             >
                                 View Report
@@ -25,11 +28,14 @@ function Reports() {
                 </div>
 
                 <div className="col-md-4">
-                    <div className="card shadow-sm">
-                        <div className="card-body">
+                    <div className="card shadow-sm h-100 border-0">
+                        <div className="card-body d-flex flex-column">
                             <h5>Member Performance</h5>
+                            <p className="text-muted small">
+                                Productivity, score and resource utilization.
+                            </p>
                             <button 
-                                className="btn btn-success mt-3"
+                                className="btn btn-success mt-auto w-100"
                                 onClick={() => navigate("/reports/member-performance")}
                             >
                                 View Report
@@ -39,11 +45,14 @@ function Reports() {
                 </div>
 
                 <div className="col-md-4">
-                    <div className="card shadow-sm">
-                        <div className="card-body">
+                    <div className="card shadow-sm h-100 border-0">
+                        <div className="card-body d-flex flex-column">
                             <h5>Lag Attribution</h5>
+                            <p className="text-muted small">
+                                Delays, overdue tasks and breach analysis.
+                            </p>
                             <button 
-                                className="btn btn-danger mt-3"
+                                className="btn btn-danger mt-auto w-100"
                                 onClick={() => navigate("/reports/lag-attribution")}
                             >
                                 View Report
