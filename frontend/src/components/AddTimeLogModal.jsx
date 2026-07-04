@@ -11,222 +11,146 @@ function AddTimeLogModal({
     handleClose,
     refreshLogs
 }) {
+    const [tasks, setTasks] = useState([]);
+    const [members, setMembers] = useState([]);
+    const [saving, setSaving] = useState(false);
 
-    const [tasks,setTasks]=useState([]);
-    const [members,setMembers]=useState([]);
-
-    const [formData,setFormData]=useState({
-        taskId:"",
-        memberId:"",
-        date:"",
-        hoursLogged:"",
-        notes:""
+    const [formData, setFormData] = useState({
+        taskId: "",
+        memberId: "",
+        date: "",
+        hoursLogged: "",
+        notes: ""
     });
 
-    useEffect(()=>{
-
+    useEffect(() => {
         loadData();
+    }, []);
 
-    },[]);
+    const loadData = async () => {
+        try {
+            const taskRes = await getTasks();
+            const memberRes = await getMembers();
 
-    const loadData=async()=>{
-
-        const taskRes=await getTasks();
-        const memberRes=await getMembers();
-
-        setTasks(taskRes.data.data);
-        setMembers(memberRes.data.data);
-
-    }
-
-    const handleChange=(e)=>{
-
-        setFormData({
-
-            ...formData,
-
-            [e.target.name]:e.target.value
-
-        });
-
-    }
-
-    const handleSave=async()=>{
-
-        try{
-
-            await createTimeLog(formData);
-
-            refreshLogs();
-
-            handleClose();
-
-            showSuccess("Time Logged");
-
-        }catch(err){
-
-            console.log(err);
-
-            showError("Failed");
-
+            setTasks(taskRes.data.data);
+            setMembers(memberRes.data.data);
+        } catch (err) {
+            showError(err.response?.data?.message || "Failed to load time log form data");
         }
+    };
 
-    }
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
 
-    return(
+    const handleSave = async () => {
+        if (saving) return;
+        setSaving(true);
 
-<Modal show={show} onHide={handleClose}>
+        try {
+            await createTimeLog(formData);
+            refreshLogs();
+            handleClose();
+            showSuccess("Time Logged");
+        } catch (err) {
+            showError(err.response?.data?.message || "Failed to log time");
+        } finally {
+            setSaving(false);
+        }
+    };
 
-<Modal.Header closeButton>
+    return (
+        <Modal show={show} onHide={handleClose} backdrop={saving ? "static" : true}>
+            <Modal.Header closeButton={!saving}>
+                <Modal.Title>Log Hours</Modal.Title>
+            </Modal.Header>
 
-<Modal.Title>
+            <Modal.Body>
+                <Form>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Task</Form.Label>
+                        <Form.Select
+                            name="taskId"
+                            value={formData.taskId}
+                            onChange={handleChange}
+                            disabled={saving}
+                        >
+                            <option value="">Select</option>
+                            {tasks.map(task => (
+                                <option key={task._id} value={task._id}>
+                                    {task.title}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
 
-Log Hours
+                    <Form.Group className="mb-3">
+                        <Form.Label>Member</Form.Label>
+                        <Form.Select
+                            name="memberId"
+                            value={formData.memberId}
+                            onChange={handleChange}
+                            disabled={saving}
+                        >
+                            <option value="">Select</option>
+                            {members.map(member => (
+                                <option key={member._id} value={member._id}>
+                                    {member.name}
+                                </option>
+                            ))}
+                        </Form.Select>
+                    </Form.Group>
 
-</Modal.Title>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Date</Form.Label>
+                        <Form.Control
+                            type="date"
+                            name="date"
+                            value={formData.date}
+                            onChange={handleChange}
+                            disabled={saving}
+                        />
+                    </Form.Group>
 
-</Modal.Header>
+                    <Form.Group className="mb-3">
+                        <Form.Label>Hours</Form.Label>
+                        <Form.Control
+                            type="number"
+                            name="hoursLogged"
+                            value={formData.hoursLogged}
+                            onChange={handleChange}
+                            disabled={saving}
+                        />
+                    </Form.Group>
 
-<Modal.Body>
+                    <Form.Group>
+                        <Form.Label>Notes</Form.Label>
+                        <Form.Control
+                            as="textarea"
+                            rows={3}
+                            name="notes"
+                            value={formData.notes}
+                            onChange={handleChange}
+                            disabled={saving}
+                        />
+                    </Form.Group>
+                </Form>
+            </Modal.Body>
 
-<Form>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose} disabled={saving}>
+                    Cancel
+                </Button>
 
-<Form.Group className="mb-3">
-
-<Form.Label>Task</Form.Label>
-
-<Form.Select
-name="taskId"
-value={formData.taskId}
-onChange={handleChange}
->
-
-<option value="">Select</option>
-
-{
-
-tasks.map(task=>(
-
-<option
-key={task._id}
-value={task._id}
->
-
-{task.title}
-
-</option>
-
-))
-
-}
-
-</Form.Select>
-
-</Form.Group>
-
-<Form.Group className="mb-3">
-
-<Form.Label>Member</Form.Label>
-
-<Form.Select
-name="memberId"
-value={formData.memberId}
-onChange={handleChange}
->
-
-<option value="">Select</option>
-
-{
-
-members.map(member=>(
-
-<option
-key={member._id}
-value={member._id}
->
-
-{member.name}
-
-</option>
-
-))
-
-}
-
-</Form.Select>
-
-</Form.Group>
-
-<Form.Group className="mb-3">
-
-<Form.Label>Date</Form.Label>
-
-<Form.Control
-type="date"
-name="date"
-value={formData.date}
-onChange={handleChange}
-/>
-
-</Form.Group>
-
-<Form.Group className="mb-3">
-
-<Form.Label>Hours</Form.Label>
-
-<Form.Control
-type="number"
-name="hoursLogged"
-value={formData.hoursLogged}
-onChange={handleChange}
-/>
-
-</Form.Group>
-
-<Form.Group>
-
-<Form.Label>Notes</Form.Label>
-
-<Form.Control
-as="textarea"
-rows={3}
-name="notes"
-value={formData.notes}
-onChange={handleChange}
-/>
-
-</Form.Group>
-
-</Form>
-
-</Modal.Body>
-
-<Modal.Footer>
-
-<Button
-variant="secondary"
-onClick={handleClose}
->
-
-Cancel
-
-</Button>
-
-<Button
-variant="primary"
-onClick={handleSave}
->
-
-Save Log
-
-</Button>
-
-</Modal.Footer>
-
-</Modal>
-
+                <Button variant="primary" onClick={handleSave} disabled={saving}>
+                    {saving ? "Saving..." : "Save Log"}
+                </Button>
+            </Modal.Footer>
+        </Modal>
     );
-
 }
 
 export default AddTimeLogModal;
