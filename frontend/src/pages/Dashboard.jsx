@@ -4,6 +4,7 @@ import MainLayout from "../layouts/MainLayout";
 import DashboardCard from "../components/DashboardCard";
 import RecentProjects from "../components/RecentProjects";
 import axios from "../api/axios";
+import { showError } from "../components/AppToast";
 
 function Dashboard() {
   const navigate = useNavigate(); // 🚀 1️⃣ Instantiate routing hook
@@ -33,7 +34,7 @@ function Dashboard() {
       setTopPerformers(res.data.topPerformers || []);
       setDelayedTasks(res.data.delayedTasks || []);
     } catch (error) {
-      console.log(error);
+      showError(error.response?.data?.message || "Failed to load dashboard");
     }
   };
 
