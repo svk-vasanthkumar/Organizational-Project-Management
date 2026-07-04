@@ -3,7 +3,6 @@ import { Modal, Button, Form } from "react-bootstrap";
 
 import { getProjects } from "../api/projectApi";
 import { createTask, updateTask } from "../api/taskApi";
-// Crucial: Ensure this API endpoint is defined to fetch project specific assignments
 import { getAssignmentsByProject } from "../api/assignmentApi"; 
 import { showError, showSuccess, showWarning } from "./AppToast";
 
@@ -71,7 +70,7 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
             const p = await getProjects();
             setProjects(p.data.data || p.data);
         } catch (err) {
-            console.error("Error fetching projects:", err);
+            showError(err.response?.data?.message || "Failed to load projects");
         }
     };
 
@@ -81,7 +80,7 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
             const res = await getAssignmentsByProject(projectId);
             setAssignments(res.data.data || res.data);
         } catch (err) {
-            console.error("Error fetching project assignments:", err);
+            showError(err.response?.data?.message || "Failed to load project assignments");
             setAssignments([]);
         } finally {
             setIsLoadingMembers(false);
@@ -153,8 +152,7 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
             handleClose();
             showSuccess(selectedTask ? "Task Updated Successfully" : "Task Created Successfully");
         } catch (err) {
-            console.error("Error saving task:", err);
-            showError("Failed to save task. Please try again.");
+            showError(err.response?.data?.message || "Failed to save task. Please try again.");
         } finally {
             setIsSaving(false);
         }
@@ -170,7 +168,6 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
 
             <Modal.Body>
                 <Form>
-                    {/* Project Selection Dropdown */}
                     <Form.Group className="mb-3">
                         <Form.Label>Project</Form.Label>
                         <Form.Select
@@ -188,7 +185,6 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
                         </Form.Select>
                     </Form.Group>
 
-                    {/* Contextual Assigned Team Member Dropdown */}
                     <Form.Group className="mb-3">
                         <Form.Label>Assigned To</Form.Label>
                         <Form.Select
@@ -200,7 +196,7 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
                             <option value="">{isLoadingMembers ? "Loading Members..." : "Select Member"}</option>
                             {assignments.map(item => {
                                 const memberObj = item.memberId; 
-                                if (!memberObj) return null; // Defensive check for missing populations
+                                if (!memberObj) return null;
                                 return (
                                     <option 
                                         key={item._id} 
@@ -214,7 +210,6 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
                         </Form.Select>
                     </Form.Group>
 
-                    {/* Status Dropdown matched with Backend Schema Enum definitions */}
                     {selectedTask && (
                         <Form.Group className="mb-3">
                             <Form.Label>Status</Form.Label>
