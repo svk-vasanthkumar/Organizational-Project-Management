@@ -72,9 +72,7 @@ function Register() {
 
     } catch (err) {
 
-      console.log(err);
-
-      showError("Registration Failed");
+      showError(err.response?.data?.message || "Registration Failed");
 
     } finally {
 
