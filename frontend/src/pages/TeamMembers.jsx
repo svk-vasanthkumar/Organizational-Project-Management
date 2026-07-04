@@ -5,12 +5,17 @@ import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getMembers, deleteMember } from "../api/teamMemberApi";
 import AddMemberModal from "../components/AddMemberModal";
+import ConfirmModal from "../components/ConfirmModal";
+import { showError, showSuccess } from "../components/AppToast";
 
 function TeamMembers() {
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         loadMembers();
@@ -21,22 +26,37 @@ function TeamMembers() {
             const res = await getMembers();
             setMembers(res.data.data);
         } catch (err) {
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load members");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Delete this member?")) return;
-
+    const handleDelete = async () => {
+        if (!selectedId || deleting) return;
+        setDeleting(true);
         try {
-            await deleteMember(id);
-            loadMembers();
+            await deleteMember(selectedId);
+            await loadMembers();
+            showSuccess("Member Deleted Successfully");
         } catch (err) {
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to delete member");
+        } finally {
+            setDeleting(false);
+            setShowDeleteModal(false);
+            setSelectedId(null);
         }
     };
+
+    const filteredMembers = members.filter(member => {
+        const key = search.toLowerCase();
+        return (
+            member.name?.toLowerCase().includes(key) ||
+            member.email?.toLowerCase().includes(key) ||
+            member.role?.toLowerCase().includes(key) ||
+            member.department?.toLowerCase().includes(key)
+        );
+    });
 
     return (
         <MainLayout>
@@ -57,50 +77,64 @@ function TeamMembers() {
 
             {loading ? (
                 <Loader />
-            ) : members.length === 0 ? (
-                <EmptyState message="No Members Found" />
+            ) : filteredMembers.length === 0 ? (
+                <EmptyState message={search ? "No matching members found" : "No Members Found"} />
             ) : (
-                <table className="table table-bordered table-hover">
-                    <thead className="table-dark">
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Department</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {members
-                            .filter(member =>
-                                member.name.toLowerCase().includes(search.toLowerCase()) ||
-                                member.email.toLowerCase().includes(search.toLowerCase())
-                            )
-                            .map(member => (
-                                <tr key={member._id}>
-                                    <td>{member.name}</td>
-                                    <td>{member.email}</td>
-                                    <td>{member.role}</td>
-                                    <td>{member.department}</td>
-                                    <td>
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() => handleDelete(member._id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-                </table>
+                <div className="table-responsive">
+                    <table className="table table-bordered table-hover">
+                        <thead className="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredMembers.map(member => (
+                                    <tr key={member._id}>
+                                        <td>{member.name}</td>
+                                        <td>{member.email}</td>
+                                        <td>{member.role}</td>
+                                        <td>{member.department}</td>
+                                        <td>
+                                            <button
+                                                className="btn btn-danger btn-sm"
+                                                onClick={() => {
+                                                    setSelectedId(member._id);
+                                                    setShowDeleteModal(true);
+                                                }}
+                                                disabled={deleting}
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
+                    </table>
+                </div>
             )}
 
             <AddMemberModal
                 show={showModal}
                 handleClose={() => setShowModal(false)}
                 refreshMembers={loadMembers}
+            />
+
+            <ConfirmModal
+                show={showDeleteModal}
+                title="Delete Member"
+                message="Are you sure you want to delete this member?"
+                confirmText={deleting ? "Deleting..." : "Delete"}
+                onClose={() => {
+                    if (deleting) return;
+                    setShowDeleteModal(false);
+                    setSelectedId(null);
+                }}
+                onConfirm={handleDelete}
             />
         </MainLayout>
     );
