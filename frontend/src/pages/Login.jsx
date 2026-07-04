@@ -50,8 +50,8 @@ function Login() {
       showSuccess("Login Successful");
 
       navigate("/dashboard");
-    } catch (error) {
-      showError("Invalid Email or Password");
+    } catch (err) {
+      showError(err.response?.data?.message || "Invalid Email or Password");
     } finally {
       setLoading(false);
     }
