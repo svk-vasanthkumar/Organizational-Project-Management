@@ -4,11 +4,13 @@ import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getLagAttribution } from "../api/reportApi";
+import { showError } from "../components/AppToast";
 
 function LagAttributionReport() {
 
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         loadReport();
@@ -24,7 +26,7 @@ function LagAttributionReport() {
 
         } catch (err) {
 
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load lag attribution report");
 
         } finally {
 
@@ -34,11 +36,29 @@ function LagAttributionReport() {
 
     };
 
+    const filteredReports = reports.filter((item) => {
+        const key = search.toLowerCase();
+        return (
+            item.taskId?.title?.toLowerCase().includes(key) ||
+            item.memberId?.name?.toLowerCase().includes(key) ||
+            item.reason?.toLowerCase().includes(key)
+        );
+    });
+
     return (
 
         <MainLayout>
 
             <PageHeader title="Lag Attribution Report" />
+
+            <div className="mb-3">
+                <input
+                    className="form-control"
+                    placeholder="Search Task, Member or Reason..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
 
             {
 
@@ -48,13 +68,15 @@ function LagAttributionReport() {
 
                 :
 
-                reports.length === 0 ?
+                filteredReports.length === 0 ?
 
-                <EmptyState message="No Lag Records" />
+                <EmptyState message={search ? "No matching lag records found" : "No Lag Records"} />
 
                 :
 
-                <table className="table table-bordered table-hover">
+                <div className="table-responsive">
+
+                    <table className="table table-bordered table-hover">
 
                     <thead className="table-dark">
 
@@ -74,7 +96,7 @@ function LagAttributionReport() {
 
                         {
 
-                            reports.map((item) => (
+                            filteredReports.map((item) => (
 
                                 <tr key={item._id}>
 
@@ -96,7 +118,9 @@ function LagAttributionReport() {
 
                     </tbody>
 
-                </table>
+                    </table>
+
+                </div>
 
             }
 
