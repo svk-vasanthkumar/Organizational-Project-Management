@@ -11,6 +11,8 @@ import { showSuccess, showError } from "../components/AppToast";
 
 function Profile() {
     const [loading, setLoading] = useState(true);
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [changingPassword, setChangingPassword] = useState(false);
 
     const [formData, setFormData] = useState({
         name: "",
@@ -34,7 +36,7 @@ function Profile() {
             const res = await getProfile();
             setFormData(res.data.data);
         } catch (err) {
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load profile");
         } finally {
             setLoading(false);
         }
@@ -55,15 +57,19 @@ function Profile() {
     };
 
     const handleSave = async () => {
+        if (savingProfile) return;
+        setSavingProfile(true);
         try {
             await updateProfile({
                 name: formData.name,
                 email: formData.email,
             });
             showSuccess("Profile Updated");
-            loadProfile();
+            await loadProfile();
         } catch (err) {
             showError(err.response?.data?.message || "Update Failed");
+        } finally {
+            setSavingProfile(false);
         }
     };
 
@@ -73,6 +79,8 @@ function Profile() {
             return;
         }
 
+        if (changingPassword) return;
+        setChangingPassword(true);
         try {
             await changePassword({
                 currentPassword: passwordData.currentPassword,
@@ -88,6 +96,8 @@ function Profile() {
             });
         } catch (err) {
             showError(err.response?.data?.message || "Password change failed.");
+        } finally {
+            setChangingPassword(false);
         }
     };
 
@@ -163,8 +173,9 @@ function Profile() {
                     <button
                         className="btn btn-primary"
                         onClick={handleSave}
+                        disabled={savingProfile}
                     >
-                        Update Profile
+                        {savingProfile ? "Updating..." : "Update Profile"}
                     </button>
 
                     <hr className="my-4" />
@@ -209,8 +220,9 @@ function Profile() {
                     <button
                         className="btn btn-warning"
                         onClick={handleChangePassword}
+                        disabled={changingPassword}
                     >
-                        Change Password
+                        {changingPassword ? "Updating..." : "Change Password"}
                     </button>
                 </div>
             </div>
