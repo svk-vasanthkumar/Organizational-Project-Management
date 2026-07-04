@@ -4,6 +4,7 @@ import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getBreachLogs } from "../api/breachLogApi";
+import { showError } from "../components/AppToast";
 
 function BreachLogs() {
     const [logs, setLogs] = useState([]);
@@ -17,6 +18,8 @@ function BreachLogs() {
         try {
             const res = await getBreachLogs();
             setLogs(res.data.data);
+        } catch (err) {
+            showError(err.response?.data?.message || "Failed to load breach logs");
         } finally {
             setLoading(false);
         }
