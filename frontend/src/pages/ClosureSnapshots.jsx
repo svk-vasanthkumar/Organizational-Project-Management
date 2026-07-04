@@ -4,6 +4,7 @@ import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getClosureSnapshots } from "../api/closureSnapshotApi";
+import { showError } from "../components/AppToast";
 
 function ClosureSnapshots() {
     const [snapshots, setSnapshots] = useState([]);
@@ -17,6 +18,8 @@ function ClosureSnapshots() {
         try {
             const res = await getClosureSnapshots();
             setSnapshots(res.data.data);
+        } catch (err) {
+            showError(err.response?.data?.message || "Failed to load closure snapshots");
         } finally {
             setLoading(false);
         }
