@@ -18,6 +18,8 @@ import ClosureSnapshots from "./pages/ClosureSnapshots";
 import ProjectSummaryReport from "./pages/ProjectSummaryReport";
 import MemberPerformanceReport from "./pages/MemberPerformanceReport";
 import LagAttributionReport from "./pages/LagAttributionReport";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -90,6 +92,15 @@ function App() {
           <Route path="/reports/lag-attribution"
              element={ <ProtectedRoute> <LagAttributionReport/> </ProtectedRoute> }
              />
+
+
+             <Route path="/profile"
+              element={<ProtectedRoute><Profile /></ProtectedRoute>}
+             />
+
+             <Route path="/settings"
+              element={  <ProtectedRoute>  <Settings /></ProtectedRoute>}
+              />
 
 
       </Routes>
