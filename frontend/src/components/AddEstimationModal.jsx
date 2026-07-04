@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { createEstimation } from "../api/estimationApi";
 import { getProjects } from "../api/projectApi";
-import { showError } from "./AppToast";
+import { showError, showSuccess } from "./AppToast";
 
 function AddEstimationModal({ show, handleClose, refreshEstimations }) {
     const [projects, setProjects] = useState([]);
+    const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({
         projectId: "",
         estimatedHours: "",
@@ -23,7 +24,7 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
             const res = await getProjects();
             setProjects(res.data.data);
         } catch (err) {
-            console.log(err);
+            showError(err.response?.data?.message || "Failed to load projects");
         }
     };
 
@@ -47,19 +48,24 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
     };
 
     const handleSave = async () => {
+        if (saving) return;
+        setSaving(true);
+
         try {
             await createEstimation(formData);
             refreshEstimations();
             handleClose();
+            showSuccess("Estimation Saved Successfully");
         } catch (err) {
-            console.log(err);
-            showError("Failed to save estimation");
+            showError(err.response?.data?.message || "Failed to save estimation");
+        } finally {
+            setSaving(false);
         }
     };
 
     return (
-        <Modal show={show} onHide={handleClose} size="lg">
-            <Modal.Header closeButton>
+        <Modal show={show} onHide={handleClose} size="lg" backdrop={saving ? "static" : true}>
+            <Modal.Header closeButton={!saving}>
                 <Modal.Title>Add Estimation</Modal.Title>
             </Modal.Header>
 
@@ -71,6 +77,7 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
                             name="projectId"
                             value={formData.projectId}
                             onChange={handleChange}
+                            disabled={saving}
                         >
                             <option value="">Select Project</option>
                             {projects.map(project => (
@@ -90,6 +97,7 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
                                     name="estimatedHours"
                                     value={formData.estimatedHours}
                                     onChange={handleChange}
+                                    disabled={saving}
                                 />
                             </Form.Group>
                         </div>
@@ -102,6 +110,7 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
                                     name="hourlyRate"
                                     value={formData.hourlyRate}
                                     onChange={handleChange}
+                                    disabled={saving}
                                 />
                             </Form.Group>
                         </div>
@@ -112,7 +121,7 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
                         <Form.Control
                             type="text"
                             name="quotedPrice"
-                            value={`₹ ${formData.quotedPrice}`}
+                            value={`â‚¹ ${formData.quotedPrice}`}
                             readOnly
                             disabled
                         />
@@ -126,17 +135,18 @@ function AddEstimationModal({ show, handleClose, refreshEstimations }) {
                             name="notes"
                             value={formData.notes}
                             onChange={handleChange}
+                            disabled={saving}
                         />
                     </Form.Group>
                 </Form>
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
+                <Button variant="secondary" onClick={handleClose} disabled={saving}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={handleSave}>
-                    Save Estimation
+                <Button variant="primary" onClick={handleSave} disabled={saving}>
+                    {saving ? "Saving..." : "Save Estimation"}
                 </Button>
             </Modal.Footer>
         </Modal>
