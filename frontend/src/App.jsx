@@ -20,89 +20,42 @@ import MemberPerformanceReport from "./pages/MemberPerformanceReport";
 import LagAttributionReport from "./pages/LagAttributionReport";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import AppToast from "./components/AppToast";
 
 function App() {
   return (
     <BrowserRouter>
+      <AppToast />
+
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Protected Routes */}
-        <Route 
-          path="/dashboard" 
-          element={<ProtectedRoute><Dashboard /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/projects" 
-          element={<ProtectedRoute><Projects /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/estimation" 
-          element={<ProtectedRoute><Estimation /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/team-members" 
-          element={<ProtectedRoute><TeamMembers /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/assignment" 
-          element={<ProtectedRoute><Assignment /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/tasks" 
-          element={<ProtectedRoute><Tasks /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/time-logs" 
-          element={<ProtectedRoute><TimeLogs /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/performance" 
-          element={<ProtectedRoute><Performance /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/reports" 
-          element={<ProtectedRoute><Reports /></ProtectedRoute>} 
-        />
-        <Route 
-          path="/project-delivery" 
-          element={<ProtectedRoute><ProjectDelivery /></ProtectedRoute>} 
-        />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
+        <Route path="/estimation" element={<ProtectedRoute><Estimation /></ProtectedRoute>} />
+        <Route path="/team-members" element={<ProtectedRoute><TeamMembers /></ProtectedRoute>} />
+        <Route path="/assignment" element={<ProtectedRoute><Assignment /></ProtectedRoute>} />
+        <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+        <Route path="/time-logs" element={<ProtectedRoute><TimeLogs /></ProtectedRoute>} />
+        <Route path="/performance" element={<ProtectedRoute><Performance /></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+        <Route path="/project-delivery" element={<ProtectedRoute><ProjectDelivery /></ProtectedRoute>} />
 
-        <Route path="/breach-logs"
-        element={ <ProtectedRoute> <BreachLogs/> </ProtectedRoute> }
-        />
+        <Route path="/breach-logs" element={<ProtectedRoute><BreachLogs /></ProtectedRoute>} />
 
-        <Route path="/closure-snapshots"
-          element={ <ProtectedRoute> <ClosureSnapshots/> </ProtectedRoute> }
-        />
+        <Route path="/closure-snapshots" element={<ProtectedRoute><ClosureSnapshots /></ProtectedRoute>} />
 
-        <Route path="/reports/project-summary"
-          element={<ProtectedRoute> <ProjectSummaryReport /> </ProtectedRoute> }
-        />
+        <Route path="/reports/project-summary" element={<ProtectedRoute><ProjectSummaryReport /></ProtectedRoute>} />
 
-         <Route path="/reports/member-performance"
-            element={ <ProtectedRoute> <MemberPerformanceReport/> </ProtectedRoute>
-}
-            />
+         <Route path="/reports/member-performance" element={<ProtectedRoute><MemberPerformanceReport /></ProtectedRoute>} />
 
-          <Route path="/reports/lag-attribution"
-             element={ <ProtectedRoute> <LagAttributionReport/> </ProtectedRoute> }
-             />
+          <Route path="/reports/lag-attribution" element={<ProtectedRoute><LagAttributionReport /></ProtectedRoute>} />
 
+         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
-             <Route path="/profile"
-              element={<ProtectedRoute><Profile /></ProtectedRoute>}
-             />
-
-             <Route path="/settings"
-              element={  <ProtectedRoute>  <Settings /></ProtectedRoute>}
-              />
-
-
+         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
