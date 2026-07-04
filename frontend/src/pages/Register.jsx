@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../api/authApi";
+import { showError, showSuccess, showWarning } from "../components/AppToast";
 
 import {
   FaUser,
@@ -45,7 +46,7 @@ function Register() {
 
     if (formData.password !== formData.confirmPassword) {
 
-      alert("Passwords do not match");
+      showWarning("Passwords do not match");
 
       return;
 
@@ -65,7 +66,7 @@ function Register() {
 
       });
 
-      alert("Registration Successful");
+      showSuccess("Registration Successful");
 
       navigate("/login");
 
@@ -73,7 +74,7 @@ function Register() {
 
       console.log(err);
 
-      alert("Registration Failed");
+      showError("Registration Failed");
 
     } finally {
 
