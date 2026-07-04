@@ -1,12 +1,16 @@
 import MainLayout from "../layouts/MainLayout";
 import PageHeader from "../components/PageHeader";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import ConfirmModal from "../components/ConfirmModal";
 
 function Settings() {
 
     const navigate = useNavigate();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
 
         localStorage.clear();
 
@@ -41,7 +45,10 @@ function Settings() {
 
                             <button
                                 className="btn btn-outline-danger w-100"
-                                onClick={handleLogout}
+                                onClick={() => {
+                                    setSelectedId("logout");
+                                    setShowDeleteModal(true);
+                                }}
                             >
                                 Logout
                             </button>
@@ -62,37 +69,39 @@ function Settings() {
                                 Application
                             </h5>
 
-                            <table className="table">
+                            <div className="table-responsive">
+                                <table className="table">
 
-                                <tbody>
+                                    <tbody>
 
-                                    <tr>
-                                        <td>Version</td>
-                                        <td>1.0.0</td>
-                                    </tr>
+                                        <tr>
+                                            <td>Version</td>
+                                            <td>1.0.0</td>
+                                        </tr>
 
-                                    <tr>
-                                        <td>Framework</td>
-                                        <td>React + Node.js</td>
-                                    </tr>
+                                        <tr>
+                                            <td>Framework</td>
+                                            <td>React + Node.js</td>
+                                        </tr>
 
-                                    <tr>
-                                        <td>Database</td>
-                                        <td>MongoDB</td>
-                                    </tr>
+                                        <tr>
+                                            <td>Database</td>
+                                            <td>MongoDB</td>
+                                        </tr>
 
-                                    <tr>
-                                        <td>Status</td>
-                                        <td>
-                                            <span className="badge bg-success">
-                                                Running
-                                            </span>
-                                        </td>
-                                    </tr>
+                                        <tr>
+                                            <td>Status</td>
+                                            <td>
+                                                <span className="badge bg-success">
+                                                    Running
+                                                </span>
+                                            </td>
+                                        </tr>
 
-                                </tbody>
+                                    </tbody>
 
-                            </table>
+                                </table>
+                            </div>
 
                         </div>
 
@@ -101,6 +110,22 @@ function Settings() {
                 </div>
 
             </div>
+
+            <ConfirmModal
+                show={showDeleteModal}
+                title="Logout"
+                message="Are you sure you want to logout?"
+                confirmText="Logout"
+                onClose={() => {
+                    setShowDeleteModal(false);
+                    setSelectedId(null);
+                }}
+                onConfirm={() => {
+                    if (selectedId === "logout") {
+                        handleLogout();
+                    }
+                }}
+            />
 
         </MainLayout>
 
