@@ -5,6 +5,7 @@ const {
     getPerformance
 } = require("../controllers/performanceController");
 
-router.get("/:memberId/:projectId", getPerformance);
+// Get performance analytics metrics aggregated for all team members
+router.get("/", getPerformance);
 
 module.exports = router;
