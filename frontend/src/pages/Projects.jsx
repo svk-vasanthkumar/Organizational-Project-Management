@@ -6,6 +6,7 @@ import EmptyState from "../components/EmptyState";
 import StatusBadge from "../components/StatusBadge";
 import { getProjects, deleteProject } from "../api/projectApi";
 import AddProjectModal from "../components/AddProjectModal";
+import { showError, showSuccess } from "../components/AppToast";
 
 function Projects() {
     const [projects, setProjects] = useState([]);
@@ -39,10 +40,10 @@ function Projects() {
         try {
             await deleteProject(id);
             loadProjects();
-            alert("Project Deleted Successfully");
+            showSuccess("Project Deleted Successfully");
         } catch (error) {
             console.log(error);
-            alert("Failed to delete project");
+            showError("Failed to delete project");
         }
     };
 
