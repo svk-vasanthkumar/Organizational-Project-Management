@@ -6,7 +6,6 @@ import EmptyState from "../components/EmptyState";
 import { getProjectDeliveries } from "../api/projectDeliveryApi";
 
 function ProjectDelivery() {
-
     const [deliveries, setDeliveries] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -15,104 +14,80 @@ function ProjectDelivery() {
     }, []);
 
     const loadDeliveries = async () => {
-
         try {
-
             const res = await getProjectDeliveries();
-
             setDeliveries(res.data.data);
-
         } catch (err) {
-
             console.log(err);
-
         } finally {
-
             setLoading(false);
-
         }
-
     };
 
     return (
-
         <MainLayout>
+            <PageHeader title="Project Delivery" />
 
-            <PageHeader
-                title="Project Delivery"
-                buttonText="+ Deliver Project"
-            />
-
-            {
-
-                loading ?
-
+            {loading ? (
                 <Loader />
-
-                :
-
-                deliveries.length === 0 ?
-
-                <EmptyState
-                    message="No Deliveries Found"
-                />
-
-                :
-
-                <table className="table table-bordered table-hover">
-
-                    <thead className="table-dark">
-
-                        <tr>
-
-                            <th>Project</th>
-                            <th>Delivery Date</th>
-                            <th>Mode</th>
-                            <th>Client Signoff</th>
-                            <th>Status</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        {
-
-                            deliveries.map(item => (
-
+            ) : deliveries.length === 0 ? (
+                <EmptyState message="No Deliveries Found" />
+            ) : (
+                <div className="table-responsive">
+                    <table className="table table-hover align-middle">
+                        <thead className="table-dark">
+                            <tr>
+                                <th>Project</th>
+                                <th>Completion</th>
+                                <th>Tasks</th>
+                                <th>Hours</th>
+                                <th>Expected End</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {deliveries.map(item => (
                                 <tr key={item._id}>
-
-                                    <td>{item.projectId?.name}</td>
-
-                                    <td>{item.deliveryDate?.substring(0,10)}</td>
-
-                                    <td>{item.mode}</td>
-
+                                    <td>{item.projectName}</td>
                                     <td>
-
-                                        {item.clientSignoff ? "✅ Yes" : "❌ No"}
-
+                                        <div className="progress" style={{ height: "8px", minWidth: "120px" }}>
+                                            <div
+                                                className="progress-bar"
+                                                style={{ width: `${item.completion}%` }}
+                                            />
+                                        </div>
+                                        <small>{item.completion}%</small>
                                     </td>
-
-                                    <td>{item.status}</td>
-
+                                    <td>
+                                        {item.completedTasks}/{item.totalTasks}
+                                    </td>
+                                    <td>
+                                        {item.usedHours}/{item.allocatedHours}
+                                    </td>
+                                    <td>
+                                        {item.expectedEndDate?.substring(0, 10)}
+                                    </td>
+                                    <td>
+                                        <span
+                                            className={`badge ${
+                                                item.status === "Completed"
+                                                    ? "bg-success"
+                                                    : item.status === "Delayed"
+                                                    ? "bg-danger"
+                                                    : "bg-primary"
+                                            }`}
+                                        >
+                                            {item.status}
+                                        </span>
+                                    </td>
                                 </tr>
-
-                            ))
-
-                        }
-
-                    </tbody>
-
-                </table>
-
-            }
-
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </MainLayout>
-
     );
-
 }
 
 export default ProjectDelivery;

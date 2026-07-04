@@ -1,14 +1,11 @@
 const express = require("express");
-
 const router = express.Router();
 
 const {
-  createProjectDelivery,
-  getProjectDeliveries
+    getProjectDeliveries,
 } = require("../controllers/projectDeliveryController");
 
+// Get Project Delivery Dashboard
 router.get("/", getProjectDeliveries);
-
-router.post("/", createProjectDelivery);
 
 module.exports = router;
