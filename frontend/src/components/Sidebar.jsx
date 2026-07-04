@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { showWarning } from './AppToast';
 import {
   FiGrid,
   FiFolder,
@@ -64,8 +65,7 @@ export default function Sidebar() {
   // Safe handler to prevent navigation crashes until Profile/Settings modules exist
   const handleSafeRoute = (destination) => {
     setProfileMenuOpen(false);
-    // Once you generate Profile.jsx and Settings.jsx, replace alert with: navigate(destination)
-    alert(`Module ${destination} will be connected in the next phase.`);
+    showWarning(`Module ${destination} will be connected in the next phase.`);
   };
 
   const NavigationContent = ({ isMobile = false }) => (
