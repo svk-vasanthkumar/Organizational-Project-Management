@@ -1,6 +1,7 @@
 import { Modal, Button, Form } from "react-bootstrap";
 import { useEffect, useState } from "react";
 import { createProject, updateProject } from "../api/projectApi";
+import { showError, showSuccess } from "./AppToast";
 
 function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }) {
     const [formData, setFormData] = useState({
@@ -55,16 +56,16 @@ function AddProjectModal({ show, handleClose, refreshProjects, selectedProject }
         try {
             if (selectedProject) {
                 await updateProject(selectedProject._id, formData);
-                alert("Project Updated Successfully");
+                showSuccess("Project Updated Successfully");
             } else {
                 await createProject(formData);
-                alert("Project Created Successfully");
+                showSuccess("Project Created Successfully");
             }
             refreshProjects();
             handleClose();
         } catch (error) {
             console.log(error);
-            alert("Operation Failed");
+            showError("Operation Failed");
         }
     };
 
