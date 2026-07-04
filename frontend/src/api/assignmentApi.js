@@ -6,5 +6,8 @@ export const getAssignments = () =>
 export const createAssignment = (data) =>
     axios.post("/assignments", data);
 
+export const updateAssignment = (id, data) =>
+    axios.put(`/assignments/${id}`, data);
+
 export const deleteAssignment = (id) =>
     axios.delete(`/assignments/${id}`);

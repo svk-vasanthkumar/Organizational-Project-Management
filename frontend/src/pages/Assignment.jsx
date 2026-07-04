@@ -3,7 +3,7 @@ import MainLayout from "../layouts/MainLayout";
 import PageHeader from "../components/PageHeader";
 import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
-import { getAssignments } from "../api/assignmentApi";
+import { getAssignments, deleteAssignment } from "../api/assignmentApi";
 import AddAssignmentModal from "../components/AddAssignmentModal";
 
 function Assignment() {
@@ -11,11 +11,14 @@ function Assignment() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     
-    // Step 5 Upgrades: State to manage editing existing records
+    // State to manage editing existing records
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     
-    // Step 1 Upgrades: Search state
+    // Search filter state
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Inline row selection tracker for clean deletion state confirmation
+    const [deletingId, setDeletingId] = useState(null);
 
     useEffect(() => {
         loadAssignments();
@@ -26,27 +29,32 @@ function Assignment() {
             const res = await getAssignments();
             setAssignments(res.data.data);
         } catch (err) {
-            console.log(err);
+            console.error(err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Open modal for a clean creation form
     const handleAddClick = () => {
         setSelectedAssignment(null);
         setShowModal(true);
     };
 
-    // Open modal pre-populated with active row data
     const handleEditClick = (assignment) => {
         setSelectedAssignment(assignment);
         setShowModal(true);
     };
 
-    const handleDeleteClick = (id) => {
-        console.log("Delete triggered for ID:", id);
-        // Will wire this call to the API once the backend route is exposed
+    const executeDelete = async (id) => {
+        try {
+            await deleteAssignment(id);
+            setDeletingId(null);
+            await loadAssignments();
+        } catch (err) {
+            // Fix 1: Removed browser alert, log cleanly to devtools console for toast migration later
+            console.error(err);
+            setDeletingId(null);
+        }
     };
 
     // Client-side search filtration engine
@@ -56,6 +64,19 @@ function Assignment() {
         return matchProject || matchMember;
     });
 
+    const getStatusBadgeClass = (status) => {
+        switch (status) {
+            case "Completed":
+                return "bg-success text-white";
+            case "Working":
+                return "bg-warning text-dark";
+            case "Assigned":
+                return "bg-info text-dark";
+            default:
+                return "bg-secondary text-white";
+        }
+    };
+
     return (
         <MainLayout>
             <PageHeader
@@ -64,7 +85,7 @@ function Assignment() {
                 onClick={handleAddClick}
             />
 
-            {/* Step 1: Search UI Bar */}
+            {/* Search UI Bar */}
             <div className="row mb-3">
                 <div className="col-md-4">
                     <input
@@ -82,70 +103,82 @@ function Assignment() {
             ) : filteredAssignments.length === 0 ? (
                 <EmptyState message={searchTerm ? "No matching records found" : "No Assignments"} />
             ) : (
-                <table className="table table-bordered align-middle">
-                    {/* Step 2: Remodeled Table Headers */}
-                    <thead className="table-dark">
-                        <tr>
-                            <th>Project</th>
-                            <th>Member</th>
-                            <th>Role</th>
-                            <th>Allocated Hours</th>
-                            <th>Hours Used</th>
-                            <th>Remaining Hours</th>
-                            <th>Status</th>
-                            <th className="text-center">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredAssignments.map((assign) => {
-                            const remainingHours = assign.allocatedHours - assign.hoursUsed;
-                            const isCompleted = assign.hoursUsed >= assign.allocatedHours;
-
-                            return (
+                <div className="table-responsive">
+                    <table className="table table-bordered align-middle">
+                        <thead className="table-dark">
+                            <tr>
+                                <th>Project</th>
+                                <th>Member</th>
+                                <th>Role</th>
+                                <th>Allocated Hours</th>
+                                <th>Hours Used</th>
+                                <th>Remaining Hours</th>
+                                <th>Status</th>
+                                <th className="text-center" style={{ width: "180px" }}>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredAssignments.map((assign) => (
                                 <tr key={assign._id}>
-                                    <td>{assign.projectId?.name}</td>
-                                    <td>{assign.memberId?.name}</td>
+                                    <td>{assign.projectId?.name || "N/A"}</td>
+                                    <td>{assign.memberId?.name || "N/A"}</td>
                                     <td>{assign.role}</td>
                                     <td>{assign.allocatedHours}</td>
                                     <td>{assign.hoursUsed}</td>
                                     
-                                    {/* Step 3: Calculation Output */}
-                                    <td>{remainingHours}</td>
+                                    {/* Fix 3: Clamped math prevents UI from dropping below zero */}
+                                    <td>{Math.max(0, assign.allocatedHours - assign.hoursUsed)}</td>
                                     
-                                    {/* Step 4: Visual Badging State Layout */}
+                                    {/* Fix 2: Fallback protection wrapper handles old historical DB items safely */}
                                     <td>
-                                        {isCompleted ? (
-                                            <span className="badge bg-success">Completed</span>
+                                        <span className={`badge ${getStatusBadgeClass(assign.status || "Assigned")}`}>
+                                            {assign.status || "Assigned"}
+                                        </span>
+                                    </td>
+                                    
+                                    <td className="text-center">
+                                        {deletingId === assign._id ? (
+                                            <div className="d-flex gap-1 justify-content-center">
+                                                <button 
+                                                    className="btn btn-sm btn-danger px-2"
+                                                    onClick={() => executeDelete(assign._id)}
+                                                >
+                                                    Confirm
+                                                </button>
+                                                <button 
+                                                    className="btn btn-sm btn-secondary px-2"
+                                                    onClick={() => setDeletingId(null)}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
                                         ) : (
-                                            <span className="badge bg-warning text-dark">Working</span>
+                                            <>
+                                                <button 
+                                                    className="btn btn-sm btn-outline-primary me-2"
+                                                    onClick={() => handleEditClick(assign)}
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button 
+                                                    className="btn btn-sm btn-outline-danger"
+                                                    onClick={() => setDeletingId(assign._id)}
+                                                >
+                                                    Delete
+                                                </button>
+                                            </>
                                         )}
                                     </td>
-                                    
-                                    {/* Step 5: Placeholder Trigger Actions */}
-                                    <td className="text-center">
-                                        <button 
-                                            className="btn btn-sm btn-outline-primary me-2"
-                                            onClick={() => handleEditClick(assign)}
-                                        >
-                                            Edit
-                                        </button>
-                                        <button 
-                                            className="btn btn-sm btn-outline-danger"
-                                            onClick={() => handleDeleteClick(assign._id)}
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
                                 </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             )}
 
             <AddAssignmentModal
                 show={showModal}
-                assignmentData={selectedAssignment} // Passing active selection forward to support structural duality
+                assignmentData={selectedAssignment}
                 handleClose={() => {
                     setShowModal(false);
                     setSelectedAssignment(null);

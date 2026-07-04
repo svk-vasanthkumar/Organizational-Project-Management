@@ -29,6 +29,12 @@ const projectAssignmentSchema = new mongoose.Schema(
       default: 0,
     },
 
+    status: {
+      type: String,
+      enum: ["Assigned", "Working", "Completed"],
+      default: "Assigned",
+    },
+
     startDate: {
       type: Date,
       required: true,
@@ -36,10 +42,17 @@ const projectAssignmentSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
 
-module.exports = mongoose.model(
-  "ProjectAssignment",
-  projectAssignmentSchema
-);
+// Database Layer Duplicate Protection
+projectAssignmentSchema.index({ projectId: 1, memberId: 1 }, { unique: true });
+
+// Dynamic Calculated Field (0% Storage Footprint)
+projectAssignmentSchema.virtual("remainingHours").get(function () {
+  return this.allocatedHours - this.hoursUsed;
+});
+
+module.exports = mongoose.model("ProjectAssignment", projectAssignmentSchema);
