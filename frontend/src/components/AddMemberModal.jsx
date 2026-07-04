@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import { createMember } from "../api/teamMemberApi";
+import { showError, showSuccess } from "./AppToast";
 
 function AddMemberModal({ show, handleClose, refreshMembers }) {
 
@@ -37,11 +38,13 @@ function AddMemberModal({ show, handleClose, refreshMembers }) {
                 department: ""
             });
 
+            showSuccess("Member Added Successfully");
+
         } catch (err) {
 
             console.log(err);
 
-            alert("Failed to add member");
+            showError("Failed to add member");
 
         }
 
