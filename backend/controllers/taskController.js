@@ -9,16 +9,15 @@ const createTask = async (req, res) => {
   try {
     const {
       projectId,
-      assignmentId, // ❌ Issue 1 Fix: Frontend now explicitly provides the assignment context link
+      assignmentId,
       assignedTo,
       title,
       description,
       estimatedHours,
       deadline,
       priority,
-    } = req.body; // ❌ Issue 2 Fix: Removed parentTaskId reference entirely
+    } = req.body;
 
-    // ❌ Issue 1 Fix: Query strictly against the explicit assignment index
     const assignment = await ProjectAssignment.findById(assignmentId);
     if (!assignment) {
       return res.status(404).json({
@@ -27,15 +26,17 @@ const createTask = async (req, res) => {
       });
     }
 
-    // Safety Interception: Ensure payload values match the verified assignment bounds
-    if (assignment.projectId.toString() !== projectId || assignment.memberId.toString() !== assignedTo) {
+    // ✅ Fix 1: Bulletproof ObjectId-to-string conversion check
+    if (
+      assignment.projectId.toString() !== projectId.toString() ||
+      assignment.memberId.toString() !== assignedTo.toString()
+    ) {
       return res.status(400).json({
         success: false,
         message: "Assignment mismatch metadata context values detected.",
       });
     }
 
-    // Capacity Recalculation
     const tasks = await Task.find({ assignmentId });
     const currentAllocatedSum = tasks.reduce((sum, task) => sum + task.estimatedHours, 0);
     const totalTaskHours = currentAllocatedSum + Number(estimatedHours);
@@ -47,10 +48,9 @@ const createTask = async (req, res) => {
       });
     }
 
-    // Create Task
     const task = await Task.create({
       projectId,
-      assignmentId, // ❌ Issue 3 Fix: Saved index securely to document structure
+      assignmentId,
       assignedTo,
       title,
       description,
@@ -78,7 +78,6 @@ const createTask = async (req, res) => {
 // =========================================================================
 const getTasks = async (req, res) => {
   try {
-    // ❌ Issue 4 Fix: Populated assignment reference to expose virtuals downstream
     const tasks = await Task.find()
       .populate("projectId")
       .populate("assignedTo")
@@ -102,13 +101,11 @@ const updateTask = async (req, res) => {
     const { id } = req.params;
     const { title, description, estimatedHours, deadline, priority, status, progress } = req.body;
 
-    // Swapped findByIdAndUpdate out for full object state handling access
     const task = await Task.findById(id);
     if (!task) {
       return res.status(404).json({ success: false, message: "Task not found." });
     }
 
-    // ❌ Issue 7 Fix: Enforce Strict Budget Threshold Interception on updates
     if (estimatedHours !== undefined && Number(estimatedHours) !== task.estimatedHours) {
       const assignment = await ProjectAssignment.findById(task.assignmentId);
       const brotherTasks = await Task.find({ assignmentId: task.assignmentId, _id: { $ne: id } });
@@ -125,24 +122,32 @@ const updateTask = async (req, res) => {
       task.estimatedHours = Number(estimatedHours);
     }
 
-    // Map modifications safely (Bypassing parentTaskId completely)
     if (title !== undefined) task.title = title;
     if (description !== undefined) task.description = description;
     if (deadline !== undefined) task.deadline = deadline;
     if (priority !== undefined) task.priority = priority;
-    if (progress !== undefined) task.progress = Number(progress);
 
-    // Apply explicit state status updates
+    // ✅ Fix 2: Strict numerical value checking on incoming progress parameters
+    if (progress !== undefined) {
+      const numProgress = Number(progress);
+      if (numProgress < 0 || numProgress > 100) {
+        return res.status(400).json({
+          success: false,
+          message: "Progress must be between 0 and 100.",
+        });
+      }
+      task.progress = numProgress;
+    }
+
     if (status !== undefined) {
       task.status = status;
 
-      // ❌ Issue 5 Fix: Automatic Progress & Timeline State Machine Processing
       if (status === "Completed") {
         task.progress = 100;
         task.completedAt = new Date();
       } else if (status === "In Progress") {
         if (task.progress === 0 || task.progress === 100) {
-          task.progress = 10; // Inject starter baseline traction floor
+          task.progress = 10;
         }
         task.completedAt = null;
       } else if (status === "Not Started") {
@@ -151,16 +156,21 @@ const updateTask = async (req, res) => {
       }
     }
 
-    // Deadline Breach Control evaluation
+    // ✅ Fix 3: Standardized boundary alignment via normalized day values
     const today = new Date();
-    if (task.deadline && new Date(task.deadline) < today && task.status !== "Completed") {
+    today.setHours(0, 0, 0, 0);
+
+    const taskDeadline = new Date(task.deadline);
+    taskDeadline.setHours(0, 0, 0, 0);
+
+    if (taskDeadline < today && task.status !== "Completed") {
       const logExists = await BreachLog.findOne({ taskId: task._id });
       if (!logExists) {
         await BreachLog.create({
           taskId: task._id,
           memberId: task.assignedTo,
           originalDeadline: task.deadline,
-          revisedDeadline: today,
+          revisedDeadline: new Date(), // Active baseline registration record stamp
           reason: "Task deadline exceeded.",
         });
       }
@@ -183,11 +193,9 @@ const updateTask = async (req, res) => {
 // 4. DELETE TASK
 // =========================================================================
 const deleteTask = async (req, res) => {
-  // ❌ Issue 6 Fix: Clean implementation to close CRUD contract mapping
   try {
-    const { id } = req.params;
+    const task = await Task.findById(req.params.id);
 
-    const task = await Task.findById(id);
     if (!task) {
       return res.status(404).json({
         success: false,
@@ -195,7 +203,8 @@ const deleteTask = async (req, res) => {
       });
     }
 
-    await Task.findByIdAndDelete(id);
+    // [Note for Fix 4]: TimeLog isolation lock logic hooks right here once model is generated.
+    await Task.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
@@ -203,7 +212,10 @@ const deleteTask = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
 
