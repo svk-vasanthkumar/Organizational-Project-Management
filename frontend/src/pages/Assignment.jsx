@@ -5,20 +5,18 @@ import Loader from "../components/Loader";
 import EmptyState from "../components/EmptyState";
 import { getAssignments, deleteAssignment } from "../api/assignmentApi";
 import AddAssignmentModal from "../components/AddAssignmentModal";
+import ConfirmModal from "../components/ConfirmModal";
+import { showError, showSuccess } from "../components/AppToast";
 
 function Assignment() {
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
-    
-    // State to manage editing existing records
     const [selectedAssignment, setSelectedAssignment] = useState(null);
-    
-    // Search filter state
     const [searchTerm, setSearchTerm] = useState("");
-
-    // Inline row selection tracker for clean deletion state confirmation
-    const [deletingId, setDeletingId] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedId, setSelectedId] = useState(null);
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         loadAssignments();
@@ -29,7 +27,7 @@ function Assignment() {
             const res = await getAssignments();
             setAssignments(res.data.data);
         } catch (err) {
-            console.error(err);
+            showError(err.response?.data?.message || "Failed to load assignments");
         } finally {
             setLoading(false);
         }
@@ -45,23 +43,27 @@ function Assignment() {
         setShowModal(true);
     };
 
-    const executeDelete = async (id) => {
+    const executeDelete = async () => {
+        if (!selectedId || deleting) return;
+        setDeleting(true);
         try {
-            await deleteAssignment(id);
-            setDeletingId(null);
+            await deleteAssignment(selectedId);
             await loadAssignments();
+            showSuccess("Assignment Deleted Successfully");
         } catch (err) {
-            // Fix 1: Removed browser alert, log cleanly to devtools console for toast migration later
-            console.error(err);
-            setDeletingId(null);
+            showError(err.response?.data?.message || "Failed to delete assignment");
+        } finally {
+            setDeleting(false);
+            setShowDeleteModal(false);
+            setSelectedId(null);
         }
     };
 
-    // Client-side search filtration engine
     const filteredAssignments = assignments.filter((assign) => {
         const matchProject = assign.projectId?.name?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchMember = assign.memberId?.name?.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchProject || matchMember;
+        const matchRole = assign.role?.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchProject || matchMember || matchRole;
     });
 
     const getStatusBadgeClass = (status) => {
@@ -85,7 +87,6 @@ function Assignment() {
                 onClick={handleAddClick}
             />
 
-            {/* Search UI Bar */}
             <div className="row mb-3">
                 <div className="col-md-4">
                     <input
@@ -126,10 +127,8 @@ function Assignment() {
                                     <td>{assign.allocatedHours}</td>
                                     <td>{assign.hoursUsed}</td>
                                     
-                                    {/* Fix 3: Clamped math prevents UI from dropping below zero */}
                                     <td>{Math.max(0, assign.allocatedHours - assign.hoursUsed)}</td>
                                     
-                                    {/* Fix 2: Fallback protection wrapper handles old historical DB items safely */}
                                     <td>
                                         <span className={`badge ${getStatusBadgeClass(assign.status || "Assigned")}`}>
                                             {assign.status || "Assigned"}
@@ -137,37 +136,22 @@ function Assignment() {
                                     </td>
                                     
                                     <td className="text-center">
-                                        {deletingId === assign._id ? (
-                                            <div className="d-flex gap-1 justify-content-center">
-                                                <button 
-                                                    className="btn btn-sm btn-danger px-2"
-                                                    onClick={() => executeDelete(assign._id)}
-                                                >
-                                                    Confirm
-                                                </button>
-                                                <button 
-                                                    className="btn btn-sm btn-secondary px-2"
-                                                    onClick={() => setDeletingId(null)}
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <button 
-                                                    className="btn btn-sm btn-outline-primary me-2"
-                                                    onClick={() => handleEditClick(assign)}
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button 
-                                                    className="btn btn-sm btn-outline-danger"
-                                                    onClick={() => setDeletingId(assign._id)}
-                                                >
-                                                    Delete
-                                                </button>
-                                            </>
-                                        )}
+                                        <button 
+                                            className="btn btn-sm btn-outline-primary me-2"
+                                            onClick={() => handleEditClick(assign)}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button 
+                                            className="btn btn-sm btn-outline-danger"
+                                            onClick={() => {
+                                                setSelectedId(assign._id);
+                                                setShowDeleteModal(true);
+                                            }}
+                                            disabled={deleting}
+                                        >
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -184,6 +168,19 @@ function Assignment() {
                     setSelectedAssignment(null);
                 }}
                 refreshAssignments={loadAssignments}
+            />
+
+            <ConfirmModal
+                show={showDeleteModal}
+                title="Delete Assignment"
+                message="Are you sure you want to delete this assignment?"
+                confirmText={deleting ? "Deleting..." : "Delete"}
+                onClose={() => {
+                    if (deleting) return;
+                    setShowDeleteModal(false);
+                    setSelectedId(null);
+                }}
+                onConfirm={executeDelete}
             />
         </MainLayout>
     );
