@@ -2,78 +2,146 @@ import { useEffect, useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 
 import { getProjects } from "../api/projectApi";
-import { getMembers } from "../api/teamMemberApi";
-import { createTask, getTasks, updateTask } from "../api/taskApi";
+import { createTask, updateTask } from "../api/taskApi";
+// Crucial: Ensure this API endpoint is defined to fetch project specific assignments
+import { getAssignmentsByProject } from "../api/assignmentApi"; 
 
 function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
     const [projects, setProjects] = useState([]);
-    const [members, setMembers] = useState([]);
-    const [tasks, setTasks] = useState([]);
+    const [assignments, setAssignments] = useState([]); 
+    const [isSaving, setIsSaving] = useState(false); 
+    const [isLoadingMembers, setIsLoadingMembers] = useState(false); // Handles loading status text
 
     const [formData, setFormData] = useState({
         projectId: "",
         assignedTo: "",
+        assignmentId: "", 
         title: "",
         description: "",
         estimatedHours: "",
         deadline: "",
         priority: "Medium",
-        parentTaskId: ""
+        status: "Not Started" 
     });
 
     useEffect(() => {
-        loadData();
+        loadProjects();
     }, []);
 
     useEffect(() => {
-        if (selectedTask) {
-            setFormData({
-                projectId: selectedTask.projectId?._id || selectedTask.projectId || "",
-                assignedTo: selectedTask.assignedTo?._id || selectedTask.assignedTo || "",
-                title: selectedTask.title || "",
-                description: selectedTask.description || "",
-                estimatedHours: selectedTask.estimatedHours || "",
-                deadline: selectedTask.deadline?.substring(0, 10) || "",
-                priority: selectedTask.priority || "Medium",
-                status: selectedTask.status || "",
-                parentTaskId: selectedTask.parentTaskId || ""
-            });
-        } else {
-            setFormData({
-                projectId: "",
-                assignedTo: "",
-                title: "",
-                description: "",
-                estimatedHours: "",
-                deadline: "",
-                priority: "Medium",
-                parentTaskId: ""
-            });
+        if (show) {
+            if (selectedTask) {
+                const targetProjectId = selectedTask.projectId?._id || selectedTask.projectId || "";
+                
+                if (targetProjectId) {
+                    loadProjectAssignments(targetProjectId);
+                }
+
+                setFormData({
+                    projectId: targetProjectId,
+                    assignedTo: selectedTask.assignedTo?._id || selectedTask.assignedTo || "",
+                    assignmentId: selectedTask.assignmentId?._id || selectedTask.assignmentId || "",
+                    title: selectedTask.title || "",
+                    description: selectedTask.description || "",
+                    estimatedHours: selectedTask.estimatedHours || "",
+                    deadline: selectedTask.deadline?.substring(0, 10) || "",
+                    priority: selectedTask.priority || "Medium",
+                    status: selectedTask.status || "Not Started"
+                });
+            } else {
+                setFormData({
+                    projectId: "",
+                    assignedTo: "",
+                    assignmentId: "",
+                    title: "",
+                    description: "",
+                    estimatedHours: "",
+                    deadline: "",
+                    priority: "Medium",
+                    status: "Not Started"
+                });
+                setAssignments([]);
+            }
         }
     }, [selectedTask, show]);
 
-    const loadData = async () => {
+    const loadProjects = async () => {
         try {
             const p = await getProjects();
-            const m = await getMembers();
-            const taskRes = await getTasks();
-
-            setProjects(p.data.data);
-            setMembers(m.data.data);
-            setTasks(taskRes.data.data);
+            setProjects(p.data.data || p.data);
         } catch (err) {
-            console.log(err);
+            console.error("Error fetching projects:", err);
+        }
+    };
+
+    const loadProjectAssignments = async (projectId) => {
+        setIsLoadingMembers(true);
+        try {
+            const res = await getAssignmentsByProject(projectId);
+            setAssignments(res.data.data || res.data);
+        } catch (err) {
+            console.error("Error fetching project assignments:", err);
+            setAssignments([]);
+        } finally {
+            setIsLoadingMembers(false);
         }
     };
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        
+        if (name === "projectId") {
+            setFormData(prev => ({
+                ...prev,
+                projectId: value,
+                assignedTo: "",   
+                assignmentId: ""  
+            }));
+            
+            if (value) {
+                loadProjectAssignments(value);
+            } else {
+                setAssignments([]);
+            }
+            return;
+        }
+
+        if (name === "assignedTo") {
+            const chosenOption = e.target.options[e.target.selectedIndex];
+            const targetAssignmentId = chosenOption.getAttribute("data-assignment-id") || "";
+            
+            setFormData(prev => ({
+                ...prev,
+                assignedTo: value,
+                assignmentId: targetAssignmentId
+            }));
+            return;
+        }
+
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const validateForm = () => {
+        if (!formData.projectId) return "Please select a project.";
+        if (!formData.assignedTo || !formData.assignmentId) return "Please select an assigned member.";
+        if (!formData.title.trim()) return "Task title cannot be empty.";
+        if (formData.description && formData.description.length > 1000) return "Description cannot exceed 1000 characters.";
+        if (!formData.estimatedHours || Number(formData.estimatedHours) <= 0) return "Estimated hours must be greater than 0.";
+        if (!formData.deadline) return "Please select a valid deadline.";
+        return null; 
     };
 
     const handleSave = async () => {
+        const validationError = validateForm();
+        if (validationError) {
+            alert(validationError);
+            return;
+        }
+
+        setIsSaving(true);
         try {
             if (selectedTask) {
                 await updateTask(selectedTask._id, formData);
@@ -83,14 +151,16 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
             refreshTasks();
             handleClose();
         } catch (err) {
-            console.log(err);
-            alert("Failed");
+            console.error("Error saving task:", err);
+            alert("Failed to save task. Please try again.");
+        } finally {
+            setIsSaving(false);
         }
     };
 
     return (
-        <Modal show={show} onHide={handleClose} size="lg">
-            <Modal.Header closeButton>
+        <Modal show={show} onHide={handleClose} size="lg" backdrop={isSaving ? "static" : true}>
+            <Modal.Header closeButton={!isSaving}>
                 <Modal.Title>
                     {selectedTask ? "Edit Task" : "Add Task"}
                 </Modal.Title>
@@ -98,14 +168,16 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
 
             <Modal.Body>
                 <Form>
+                    {/* Project Selection Dropdown */}
                     <Form.Group className="mb-3">
                         <Form.Label>Project</Form.Label>
                         <Form.Select
                             name="projectId"
                             value={formData.projectId}
                             onChange={handleChange}
+                            disabled={!!selectedTask || isSaving}
                         >
-                            <option value="">Select</option>
+                            <option value="">Select Project</option>
                             {projects.map(project => (
                                 <option key={project._id} value={project._id}>
                                     {project.name}
@@ -114,39 +186,50 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
                         </Form.Select>
                     </Form.Group>
 
+                    {/* Contextual Assigned Team Member Dropdown */}
                     <Form.Group className="mb-3">
                         <Form.Label>Assigned To</Form.Label>
                         <Form.Select
                             name="assignedTo"
                             value={formData.assignedTo}
                             onChange={handleChange}
+                            disabled={!!selectedTask || !formData.projectId || isSaving || isLoadingMembers}
                         >
-                            <option value="">Select</option>
-                            {members.map(member => (
-                                <option key={member._id} value={member._id}>
-                                    {member.name}
-                                </option>
-                            ))}
+                            <option value="">{isLoadingMembers ? "Loading Members..." : "Select Member"}</option>
+                            {assignments.map(item => {
+                                const memberObj = item.memberId; 
+                                if (!memberObj) return null; // Defensive check for missing populations
+                                return (
+                                    <option 
+                                        key={item._id} 
+                                        value={memberObj._id}
+                                        data-assignment-id={item._id}
+                                    >
+                                        {memberObj.name}
+                                    </option>
+                                );
+                            })}
                         </Form.Select>
                     </Form.Group>
 
-                    <Form.Group className="mb-3">
-                        <Form.Label>Parent Task (Optional)</Form.Label>
-                        <Form.Select
-                            name="parentTaskId"
-                            value={formData.parentTaskId}
-                            onChange={handleChange}
-                        >
-                            <option value="">Main Task</option>
-                            {tasks
-                                .filter(task => !task.parentTaskId && task._id !== selectedTask?._id)
-                                .map(task => (
-                                    <option key={task._id} value={task._id}>
-                                        {task.title}
-                                    </option>
-                                ))}
-                        </Form.Select>
-                    </Form.Group>
+                    {/* Status Dropdown matched with Backend Schema Enum definitions */}
+                    {selectedTask && (
+                        <Form.Group className="mb-3">
+                            <Form.Label>Status</Form.Label>
+                            <Form.Select
+                                name="status"
+                                value={formData.status}
+                                onChange={handleChange}
+                                disabled={isSaving}
+                            >
+                                <option value="Not Started">Not Started</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Review">Review</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Blocked">Blocked</option>
+                            </Form.Select>
+                        </Form.Group>
+                    )}
 
                     <Form.Group className="mb-3">
                         <Form.Label>Task Title</Form.Label>
@@ -154,6 +237,7 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
                             name="title"
                             value={formData.title}
                             onChange={handleChange}
+                            disabled={isSaving}
                         />
                     </Form.Group>
 
@@ -165,45 +249,49 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
                             name="description"
                             value={formData.description}
                             onChange={handleChange}
+                            disabled={isSaving}
                         />
                     </Form.Group>
 
                     <div className="row">
                         <div className="col-md-4">
-                            <Form.Group>
+                            <Form.Group className="mb-3">
                                 <Form.Label>Hours</Form.Label>
                                 <Form.Control
                                     type="number"
                                     name="estimatedHours"
                                     value={formData.estimatedHours}
                                     onChange={handleChange}
+                                    disabled={isSaving}
                                 />
                             </Form.Group>
                         </div>
 
                         <div className="col-md-4">
-                            <Form.Group>
+                            <Form.Group className="mb-3">
                                 <Form.Label>Deadline</Form.Label>
                                 <Form.Control
                                     type="date"
                                     name="deadline"
                                     value={formData.deadline}
                                     onChange={handleChange}
+                                    disabled={isSaving}
                                 />
                             </Form.Group>
                         </div>
 
                         <div className="col-md-4">
-                            <Form.Group>
+                            <Form.Group className="mb-3">
                                 <Form.Label>Priority</Form.Label>
                                 <Form.Select
                                     name="priority"
                                     value={formData.priority}
                                     onChange={handleChange}
+                                    disabled={isSaving}
                                 >
-                                    <option>Low</option>
-                                    <option>Medium</option>
-                                    <option>High</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
                                 </Form.Select>
                             </Form.Group>
                         </div>
@@ -212,11 +300,11 @@ function AddTaskModal({ show, handleClose, refreshTasks, selectedTask }) {
             </Modal.Body>
 
             <Modal.Footer>
-                <Button variant="secondary" onClick={handleClose}>
+                <Button variant="secondary" onClick={handleClose} disabled={isSaving}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={handleSave}>
-                    {selectedTask ? "Update Task" : "Save Task"}
+                <Button variant="primary" onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? "Saving Task..." : selectedTask ? "Update Task" : "Save Task"}
                 </Button>
             </Modal.Footer>
         </Modal>

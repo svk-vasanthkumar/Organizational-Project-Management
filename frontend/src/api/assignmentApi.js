@@ -11,3 +11,7 @@ export const updateAssignment = (id, data) =>
 
 export const deleteAssignment = (id) =>
     axios.delete(`/assignments/${id}`);
+
+// ADD THIS
+export const getAssignmentsByProject = (projectId) =>
+    axios.get(`/assignments/project/${projectId}`);

@@ -66,7 +66,7 @@ const createAssignment = async (req, res) => {
       data: assignment,
     });
   } catch (error) {
-    console.log(error); // Enhanced backend visibility
+    console.error("Error in createAssignment:", error); 
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -94,7 +94,7 @@ const getAssignments = async (req, res) => {
       data,
     });
   } catch (error) {
-    console.log(error); // Enhanced backend visibility
+    console.error("Error in getAssignments:", error); 
     res.status(500).json({
       success: false,
       message: error.message,
@@ -103,7 +103,29 @@ const getAssignments = async (req, res) => {
 };
 
 // =========================================================================
-// 3. UPDATE ASSIGNMENT
+// 3. GET ASSIGNMENTS BY PROJECT ID (Contextual Filtering Support)
+// =========================================================================
+const getAssignmentsByProject = async (req, res) => {
+  try {
+    const assignments = await ProjectAssignment.find({
+      projectId: req.params.projectId,
+    }).populate("memberId");
+
+    res.status(200).json({
+      success: true,
+      data: assignments,
+    });
+  } catch (error) {
+    console.error("Error in getAssignmentsByProject:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// =========================================================================
+// 4. UPDATE ASSIGNMENT
 // =========================================================================
 const updateAssignment = async (req, res) => {
   try {
@@ -171,13 +193,13 @@ const updateAssignment = async (req, res) => {
       data: currentAssignment,
     });
   } catch (error) {
-    console.log(error); // Enhanced backend visibility
+    console.error("Error in updateAssignment:", error); 
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // =========================================================================
-// 4. DELETE ASSIGNMENT
+// 5. DELETE ASSIGNMENT
 // =========================================================================
 const deleteAssignment = async (req, res) => {
   try {
@@ -208,7 +230,7 @@ const deleteAssignment = async (req, res) => {
       message: "Assignment deleted successfully.",
     });
   } catch (error) {
-    console.log(error); // Enhanced backend visibility
+    console.error("Error in deleteAssignment:", error); 
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -216,6 +238,7 @@ const deleteAssignment = async (req, res) => {
 module.exports = {
   createAssignment,
   getAssignments,
+  getAssignmentsByProject,
   updateAssignment,
   deleteAssignment,
 };
